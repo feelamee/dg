@@ -1,9 +1,19 @@
 #pragma once
 
+#include <engine/window.hpp>
+
+#include <glm/vec2.hpp>
+
 #include <stdexcept>
 
 namespace dg
 {
+
+struct context_error : public std::runtime_error
+{
+    explicit context_error(std::string const&);
+    context_error(char const*);
+};
 
 struct context
 {
@@ -15,9 +25,9 @@ public:
         video,
         event
     };
-    friend context::flag operator|(context::flag, context::flag);
-    friend context::flag& operator|=(context::flag&, context::flag);
-    friend context::flag operator&(context::flag, context::flag);
+    friend flag operator|(flag, flag);
+    friend flag& operator|=(flag&, flag);
+    friend flag operator&(flag, flag);
 
     /*
      * @throws `std::engine_error`
@@ -32,14 +42,10 @@ public:
 
     ~context();
 
+    window make_window(char const* const title, glm::i32vec2, glm::u32vec2, window::flag) const;
+
 private:
     void init(flag);
-};
-
-struct context_error : public std::runtime_error
-{
-    explicit context_error(std::string const&);
-    context_error(char const*);
 };
 
 } // namespace dg
