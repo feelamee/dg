@@ -69,12 +69,15 @@ IncludeCategories:
   - Regex:           '^<SDL2/'
     Priority:        4
     SortPriority:    4
-  - Regex:           '^"'
+  - Regex:           '^<glm/'
     Priority:        5
     SortPriority:    5
-  - Regex:           '.*'
+  - Regex:           '^"'
     Priority:        6
     SortPriority:    6
+  - Regex:           '.*'
+    Priority:        7
+    SortPriority:    7
 
 IncludeIsMainRegex: '$'
 IndentCaseLabels: false

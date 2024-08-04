@@ -64,6 +64,8 @@ Checks: '-*, # disable all to specify needed manually
         ,misc-use-anonymous-namespace
 
         ,cppcoreguidelines-*
+        ,-cppcoreguidelines-pro-type-union-access
+        ,-cppcoreguidelines-pro-type-vararg
         ,clang-analyzer-*
 
         ,misc-const-correctness
