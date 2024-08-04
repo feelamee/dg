@@ -104,15 +104,11 @@ context::~context()
 window
 context::make_window(char const* const title, glm::i32vec2 pos, glm::u32vec2 size, window::flag flags) const
 {
-    int internal_flags{ 0 };
+    int internal_flags{ SDL_WINDOW_OPENGL };
 
     if ((flags & window::flag::shown) != window::flag::none)
     {
         internal_flags |= SDL_WINDOW_OPENGL;
-    }
-    if ((flags & window::flag::opengl) != window::flag::none)
-    {
-        internal_flags |= SDL_WINDOW_SHOWN;
     }
 
     SDL_Window* internal_window = SDL_CreateWindow(title, pos.x, pos.y, static_cast<int>(size.x),

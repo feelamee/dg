@@ -14,7 +14,6 @@ public:
     {
         none,
 
-        opengl,
         shown,
     };
     friend flag operator|(flag, flag);
