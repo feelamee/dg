@@ -10,4 +10,6 @@ to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
+[[noreturn]] void unimplemented(char const* const msg = nullptr);
+
 } // namespace dg
