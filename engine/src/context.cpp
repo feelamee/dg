@@ -1,4 +1,4 @@
-#include <engine/engine.hpp>
+#include <engine/context.hpp>
 #include <engine/util.hpp>
 
 #include <SDL2/SDL.h>
@@ -8,32 +8,32 @@
 namespace dg
 {
 
-engine::flag
-operator|(engine::flag l, engine::flag r)
+context::flag
+operator|(context::flag l, context::flag r)
 {
-    return static_cast<engine::flag>(to_underlying(l) | to_underlying(r));
+    return static_cast<context::flag>(to_underlying(l) | to_underlying(r));
 }
 
-engine::flag&
-operator|=(engine::flag& l, engine::flag r)
+context::flag&
+operator|=(context::flag& l, context::flag r)
 {
     return l = l | r;
 }
 
-engine::flag
-operator&(engine::flag l, engine::flag r)
+context::flag
+operator&(context::flag l, context::flag r)
 {
-    return static_cast<engine::flag>(to_underlying(l) & to_underlying(r));
+    return static_cast<context::flag>(to_underlying(l) & to_underlying(r));
 }
 
 void
-engine::init(flag flags)
+context::init(flag flags)
 {
     static auto const throw_on_error = [](int errc)
     {
         if (0 != errc)
         {
-            throw engine_error(std::format("internal initialization failed with: {}", SDL_GetError()));
+            throw context_error(std::format("internal initialization failed with: {}", SDL_GetError()));
         }
     };
 
@@ -50,9 +50,9 @@ engine::init(flag flags)
     }
 }
 
-engine::engine(flag flags) { init(flags); }
+context::context(flag flags) { init(flags); }
 
-engine::engine(engine const& /*e*/)
+context::context(context const& /*e*/)
 {
     unsigned const internal_flags = SDL_WasInit(0);
     flag flags{ flag::none };
@@ -70,16 +70,15 @@ engine::engine(engine const& /*e*/)
     init(flags);
 }
 
-engine&
-engine::operator=(engine e)
+context&
+context::operator=(context /*e*/) // NOLINT(performance-unnecessary-value-param)
 {
     using std::swap;
 
-    swap(*this, e);
     return *this;
 }
 
-engine::~engine()
+context::~context()
 {
     unsigned const flags = SDL_WasInit(0);
     SDL_QuitSubSystem(flags);
@@ -90,12 +89,12 @@ engine::~engine()
     }
 }
 
-engine_error::engine_error(std::string const& msg)
+context_error::context_error(std::string const& msg)
     : std::runtime_error(msg)
 {
 }
 
-engine_error::engine_error(char const* msg)
+context_error::context_error(char const* msg)
     : std::runtime_error(msg)
 {
 }

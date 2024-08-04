@@ -36,8 +36,8 @@ add_subdirectory("deps/glad/")
 find_package(OpenGL REQUIRED)
 
 add_library(engine SHARED)
-target_sources(engine PRIVATE "include/engine/engine.hpp"
-                              "include/engine/util.hpp" "src/engine.cpp")
+target_sources(engine PRIVATE "include/engine/context.hpp"
+                              "include/engine/util.hpp" "src/context.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 target_link_libraries(
