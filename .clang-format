@@ -66,12 +66,15 @@ IncludeCategories:
   - Regex:           '^<engine'
     Priority:        3
     SortPriority:    3
-  - Regex:           '^"'
+  - Regex:           '^<SDL2/'
     Priority:        4
     SortPriority:    4
-  - Regex:           '.*'
+  - Regex:           '^"'
     Priority:        5
     SortPriority:    5
+  - Regex:           '.*'
+    Priority:        6
+    SortPriority:    6
 
 IncludeIsMainRegex: '$'
 IndentCaseLabels: false

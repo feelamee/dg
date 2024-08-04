@@ -6,6 +6,13 @@ project(
     "engine - tiny wrapper around SDL to manage video, audio, events, etc")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+option(DG_ENGINE_SANITIZER "enable -fsanitize option" ON)
+option(DG_ENGINE_PEDANTIC "enable strict compiler warnings" ON)
+option(DG_ENGINE_TEST "enable building tests for engine" OFF)
 
 include(FetchContent)
 
@@ -29,21 +36,30 @@ add_subdirectory("deps/glad/")
 find_package(OpenGL REQUIRED)
 
 add_library(engine SHARED)
-target_sources(engine PRIVATE "include/engine/engine.hpp" "src/engine.cpp")
+target_sources(engine PRIVATE "include/engine/engine.hpp"
+                              "include/engine/util.hpp" "src/engine.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 target_link_libraries(
   engine
-  PRIVATE #[[ SDL2::SDL2 ]] OpenGL::GLES3 glad::glad
-  PUBLIC glm::glm SDL2::SDL2)
+  PRIVATE SDL2::SDL2 OpenGL::GLES3 glad::glad
+  PUBLIC glm::glm)
 
 if(ANDROID)
   target_link_libraries(engine PRIVATE android log)
 endif()
 
-add_library(engine::engine ALIAS engine)
+if(DG_ENGINE_SANITIZER)
+  include("../cmake/sanitizer.cmake")
+  target_link_libraries(engine PRIVATE sanitizer::undefined sanitizer::address)
+endif()
 
-option(DG_ENGINE_TEST "enable building tests for engine" ON)
+if(DG_ENGINE_PEDANTIC)
+  include("../cmake/pedantic.cmake")
+  target_link_libraries(engine PRIVATE pedantic)
+endif()
+
+add_library(engine::engine ALIAS engine)
 
 if(DG_ENGINE_TEST)
   add_subdirectory("test/")
