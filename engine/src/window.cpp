@@ -33,8 +33,6 @@ window::internal_window_deleter::operator()(internal_window_t* w)
     }
 }
 
-window::window(window const& /*w*/) { unimplemented(); }
-
 window::window(window&& /*w*/) { unimplemented(); }
 
 window&

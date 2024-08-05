@@ -20,7 +20,7 @@ public:
     friend flag& operator|=(flag&, flag);
     friend flag operator&(flag, flag);
 
-    window(window const&);
+    window(window const&) = delete;
     window(window&&);
 
     window& operator=(window);
