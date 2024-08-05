@@ -1,9 +1,5 @@
 #pragma once
 
-#include <engine/window.hpp>
-
-#include <glm/vec2.hpp>
-
 #include <stdexcept>
 
 namespace dg
@@ -32,7 +28,7 @@ public:
     /*
      * @throws `std::engine_error`
      */
-    context(flag = flag::none);
+    context(flag flags = flag::none);
     context(context&&) = default;
     context(context const&);
 
@@ -41,9 +37,6 @@ public:
     context& operator=(context const&) = delete;
 
     ~context();
-
-    window make_window(char const* const title, glm::i32vec2, glm::u32vec2,
-                       window::flag = window::flag::none) const;
 
 private:
     void init(flag);

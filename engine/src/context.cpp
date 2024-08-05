@@ -3,8 +3,6 @@
 
 #include <SDL2/SDL.h>
 
-#include "SDL_video.h"
-
 #include <format>
 
 namespace dg
@@ -99,29 +97,6 @@ context::~context()
     {
         SDL_Quit();
     }
-}
-
-window
-context::make_window(char const* const title, glm::i32vec2 pos, glm::u32vec2 size, window::flag flags) const
-{
-    int internal_flags{ SDL_WINDOW_OPENGL };
-
-    if ((flags & window::flag::shown) != window::flag::none)
-    {
-        internal_flags |= SDL_WINDOW_OPENGL;
-    }
-
-    SDL_Window* internal_window = SDL_CreateWindow(title, pos.x, pos.y, static_cast<int>(size.x),
-                                                   static_cast<int>(size.y), internal_flags);
-    if (nullptr == internal_window)
-    {
-        throw context_error(std::format("internal window init failed with: {}", SDL_GetError()));
-    }
-
-    window w;
-    w.internal_window.reset(internal_window);
-
-    return w;
 }
 
 } // namespace dg

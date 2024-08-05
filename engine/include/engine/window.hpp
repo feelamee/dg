@@ -1,11 +1,19 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+
 #include <memory>
 
 namespace dg
 {
 
 struct context;
+
+struct window_error : public std::runtime_error
+{
+    explicit window_error(std::string const&);
+    window_error(char const*);
+};
 
 struct window
 {
@@ -20,6 +28,12 @@ public:
     friend flag& operator|=(flag&, flag);
     friend flag operator&(flag, flag);
 
+    /*
+     * @throws `window_error`
+     */
+    window(context const& ctx, char const* const title, glm::i32vec2 pos, glm::u32vec2 size,
+           window::flag flags = window::flag::none);
+
     window(window const&) = delete;
     window(window&&);
 
@@ -30,10 +44,6 @@ public:
     ~window() = default;
 
 private:
-    window() = default;
-
-    friend context;
-
     using internal_window_t = void;
     struct internal_window_deleter
     {
