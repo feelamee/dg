@@ -83,8 +83,8 @@ window::window(context const& /*cxt*/, char const* const title, glm::i32vec2 pos
     }
 
     {
-        GLint desired_major_version{ 3 };
-        GLint desired_minor_version{ 2 };
+        GLint const desired_major_version{ 3 };
+        GLint const desired_minor_version{ 2 };
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, desired_major_version);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, desired_minor_version);
 
@@ -107,7 +107,14 @@ window::window(context const& /*cxt*/, char const* const title, glm::i32vec2 pos
     int errc = gladLoadGLES2Loader(SDL_GL_GetProcAddress);
     SDL_assert_release(0 != errc);
 
-    auto p = new internal_data{ .sdl_window = sdl_window, .gl_context = gl_context };
+    {
+        int x{ 0 }, y{ 0 }, w{ 0 }, h{ 0 };
+        SDL_GetWindowPosition(sdl_window, &x, &y);
+        SDL_GetWindowSize(sdl_window, &w, &h);
+        glViewport(x, y, w, h);
+    }
+
+    auto* const p = new internal_data{ .sdl_window = sdl_window, .gl_context = gl_context };
     data.reset(p);
 }
 
@@ -121,6 +128,24 @@ window::operator=(window w)
     swap(data, w.data);
 
     return *this;
+}
+
+void
+window::swap() const
+{
+    SDL_GL_SwapWindow(data->sdl_window);
+}
+
+void
+window::clear_with(float r, float g, float b, float a)
+{
+    r = std::clamp(r, 0.f, 1.f);
+    g = std::clamp(g, 0.f, 1.f);
+    b = std::clamp(b, 0.f, 1.f);
+    a = std::clamp(a, 0.f, 1.f);
+
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 } // namespace dg

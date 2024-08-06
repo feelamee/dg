@@ -43,6 +43,9 @@ public:
 
     ~window() = default;
 
+    void clear_with(float r, float g, float b, float a);
+    void swap() const;
+
 private:
     struct internal_data;
     struct internal_data_deleter
