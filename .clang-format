@@ -72,12 +72,15 @@ IncludeCategories:
   - Regex:           '^<glm/'
     Priority:        5
     SortPriority:    5
-  - Regex:           '^"'
+  - Regex:           '^<glad/'
     Priority:        6
     SortPriority:    6
-  - Regex:           '.*'
+  - Regex:           '^"'
     Priority:        7
     SortPriority:    7
+  - Regex:           '.*'
+    Priority:        8
+    SortPriority:    8
 
 IncludeIsMainRegex: '$'
 IndentCaseLabels: false
