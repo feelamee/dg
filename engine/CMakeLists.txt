@@ -44,8 +44,8 @@ target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 target_link_libraries(
   engine
-  PRIVATE SDL2::SDL2 OpenGL::GLES3 glad::glad
-  PUBLIC glm::glm)
+  PRIVATE #[[ SDL2::SDL2 ]] OpenGL::GLES3 glad::glad
+  PUBLIC glm::glm SDL2::SDL2)
 
 if(ANDROID)
   target_link_libraries(engine PRIVATE android log)
