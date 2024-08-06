@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <stdexcept>
 
 namespace dg
@@ -20,6 +21,8 @@ public:
 
         video = 1 << 0,
         event = 1 << 1,
+
+        everything = video | event,
     };
     friend flag operator|(flag, flag);
     friend flag& operator|=(flag&, flag);
@@ -40,6 +43,8 @@ public:
 
 private:
     void init(flag);
+
+    std::uint32_t init_flags;
 };
 
 } // namespace dg

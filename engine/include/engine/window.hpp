@@ -29,7 +29,7 @@ public:
     friend flag operator&(flag, flag);
 
     /*
-     * @throws `window_error`
+     * @throws `window_error`, `std::bad_alloc`
      */
     window(context const& ctx, char const* const title, glm::i32vec2 pos, glm::u32vec2 size,
            window::flag flags = window::flag::none);
@@ -44,13 +44,13 @@ public:
     ~window() = default;
 
 private:
-    using internal_window_t = void;
-    struct internal_window_deleter
+    struct internal_data;
+    struct internal_data_deleter
     {
-        void operator()(internal_window_t*);
+        void operator()(internal_data*);
     };
 
-    std::unique_ptr<internal_window_t, internal_window_deleter> internal_window;
+    std::unique_ptr<internal_data, internal_data_deleter> data;
 };
 
 } // namespace dg

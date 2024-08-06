@@ -39,30 +39,26 @@ operator&(context::flag l, context::flag r)
 void
 context::init(flag flags)
 {
-    static auto const throw_on_error = [](int errc)
-    {
-        if (0 != errc)
-        {
-            throw context_error(std::format("internal initialization failed with: {}", SDL_GetError()));
-        }
-    };
-
     if ((flags & flag::video) != flag::none)
     {
-        int errc = SDL_InitSubSystem(SDL_INIT_VIDEO);
-        throw_on_error(errc);
+        init_flags |= SDL_INIT_VIDEO;
     }
 
     if ((flags & flag::event) != flag::none)
     {
-        int errc = SDL_InitSubSystem(SDL_INIT_EVENTS);
-        throw_on_error(errc);
+        init_flags |= SDL_INIT_EVENTS;
+    }
+
+    int const errc = SDL_Init(init_flags);
+    if (0 != errc)
+    {
+        throw context_error(std::format("internal initialization failed with: {}", SDL_GetError()));
     }
 }
 
 context::context(flag flags) { init(flags); }
 
-context::context(context const& /*e*/)
+context::context(context const& /*ctx*/)
 {
     unsigned const internal_flags = SDL_WasInit(0);
     flag flags{ flag::none };
@@ -90,8 +86,7 @@ context::operator=(context /*e*/) // NOLINT(performance-unnecessary-value-param)
 
 context::~context()
 {
-    unsigned const flags = SDL_WasInit(0);
-    SDL_QuitSubSystem(flags);
+    SDL_QuitSubSystem(init_flags);
 
     if (SDL_WasInit(0) == 0)
     {
