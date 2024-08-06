@@ -14,12 +14,12 @@ struct context_error : public std::runtime_error
 struct context
 {
 public:
-    enum class flag
+    enum class flag : unsigned
     {
         none = 0,
 
-        video,
-        event
+        video = 1 << 0,
+        event = 1 << 1,
     };
     friend flag operator|(flag, flag);
     friend flag& operator|=(flag&, flag);

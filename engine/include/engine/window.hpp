@@ -18,11 +18,11 @@ struct window_error : public std::runtime_error
 struct window
 {
 public:
-    enum class flag
+    enum class flag : unsigned
     {
-        none,
+        none = 0,
 
-        shown,
+        shown = 1 << 0,
     };
     friend flag operator|(flag, flag);
     friend flag& operator|=(flag&, flag);
