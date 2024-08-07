@@ -2,6 +2,7 @@
 #include <engine/window.hpp>
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
 
 #include <cstdlib>
 
@@ -10,7 +11,7 @@ main()
 {
     using namespace dg;
     context ctx(context::flag::everything);
-    window win(ctx, "window", { 960, 590 });
+    window win(ctx, "window", { 590, 960 });
     while (true)
     {
         SDL_Event ev;

@@ -14,6 +14,15 @@ option(DG_ENGINE_SANITIZER "enable -fsanitize option" ON)
 option(DG_ENGINE_PEDANTIC "enable strict compiler warnings" ON)
 option(DG_ENGINE_TEST "enable building tests for engine" OFF)
 
+if(ANDROID)
+  if(${ANDROID_STL} MATCHES "c\\+\\+_shared")
+    configure_file(
+      "${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"
+      "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libc++_shared.so"
+      COPYONLY)
+  endif()
+endif()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -33,8 +42,6 @@ FetchContent_MakeAvailable(glm)
 
 add_subdirectory("deps/glad/")
 
-find_package(OpenGL REQUIRED)
-
 add_library(engine SHARED)
 target_sources(
   engine
@@ -42,14 +49,18 @@ target_sources(
           "src/context.cpp" "include/engine/window.hpp" "src/window.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
-target_link_libraries(
-  engine
-  PRIVATE #[[ SDL3::SDL3 ]] OpenGL::GLES3 glad::glad
-  PUBLIC glm::glm SDL3::SDL3)
 
 if(ANDROID)
-  target_link_libraries(engine PRIVATE android log)
+  target_link_libraries(engine PRIVATE GLESv3 EGL android log)
+else()
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(engine PRIVATE OpenGL::GLES3)
 endif()
+
+target_link_libraries(
+  engine
+  PRIVATE #[[ SDL3::SDL3 ]] glad::glad
+  PUBLIC glm::glm SDL3::SDL3)
 
 if(DG_ENGINE_SANITIZER)
   include("../cmake/sanitizer.cmake")

@@ -6,5 +6,6 @@
   - [x] remember how to create opengl context
   - [x] create minimal abstraction for SDL window
   - [ ] test on android
+  - [ ] add BUILD.md with instructions of how to build on linux/android
 
 
