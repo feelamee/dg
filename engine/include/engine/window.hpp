@@ -21,8 +21,6 @@ public:
     enum class flag : unsigned
     {
         none = 0,
-
-        shown = 1 << 0,
     };
     friend flag operator|(flag, flag);
     friend flag& operator|=(flag&, flag);
@@ -31,7 +29,7 @@ public:
     /*
      * @throws `window_error`, `std::bad_alloc`
      */
-    window(context const& ctx, char const* const title, glm::i32vec2 pos, glm::u32vec2 size,
+    window(context const& ctx, char const* const title, glm::u32vec2 size,
            window::flag flags = window::flag::none);
 
     window(window const&) = delete;

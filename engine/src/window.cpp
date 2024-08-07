@@ -2,8 +2,8 @@
 #include <engine/util.hpp>
 #include <engine/window.hpp>
 
-#include <SDL2/SDL_assert.h>
-#include <SDL2/SDL_video.h>
+#include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_video.h>
 
 #include <glad/glad.h>
 
@@ -58,25 +58,19 @@ window::internal_data_deleter::operator()(internal_data* data)
         }
         if (data->gl_context)
         {
-            SDL_GL_DeleteContext(data->gl_context);
+            SDL_GL_DestroyContext(data->gl_context);
         }
 
         delete data;
     }
 }
 
-window::window(context const& /*cxt*/, char const* const title, glm::i32vec2 pos, glm::u32vec2 size,
-               window::flag flags)
+window::window(context const& /*cxt*/, char const* const title, glm::u32vec2 size, window::flag flags)
 {
     int internal_flags{ SDL_WINDOW_OPENGL };
 
-    if ((flags & window::flag::shown) != window::flag::none)
-    {
-        internal_flags |= SDL_WINDOW_SHOWN;
-    }
-
-    SDL_Window* sdl_window = SDL_CreateWindow(title, pos.x, pos.y, static_cast<int>(size.x),
-                                              static_cast<int>(size.y), internal_flags);
+    SDL_Window* sdl_window =
+        SDL_CreateWindow(title, static_cast<int>(size.x), static_cast<int>(size.y), internal_flags);
     if (nullptr == sdl_window)
     {
         throw window_error(std::format("internal window init failed with: {}", SDL_GetError()));
@@ -104,7 +98,9 @@ window::window(context const& /*cxt*/, char const* const title, glm::i32vec2 pos
         throw window_error(std::format("internal create OpenGL context failed with: {}", SDL_GetError()));
     }
 
-    int errc = gladLoadGLES2Loader(SDL_GL_GetProcAddress);
+    const auto load_gl_fn =
+        +[](char const* fn) { return reinterpret_cast<void*>(SDL_GL_GetProcAddress(fn)); };
+    int errc = gladLoadGLES2Loader(load_gl_fn);
     SDL_assert_release(0 != errc);
 
     {

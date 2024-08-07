@@ -1,7 +1,7 @@
 #include <engine/context.hpp>
 #include <engine/window.hpp>
 
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
 
 #include <cstdlib>
 
@@ -10,13 +10,13 @@ main()
 {
     using namespace dg;
     context ctx(context::flag::everything);
-    window win(ctx, "window", { 480, 295 }, { 960, 590 }, window::flag::shown);
+    window win(ctx, "window", { 960, 590 });
     while (true)
     {
         SDL_Event ev;
         while (SDL_PollEvent(&ev))
         {
-            if (ev.type == SDL_QUIT)
+            if (ev.type == SDL_EVENT_QUIT)
             {
                 return EXIT_SUCCESS;
             }

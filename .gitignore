@@ -1,3 +1,6 @@
 build/
 .helix/
 .cache/
+.gradle/
+.cxx/
+orbi/android-project/android-sdk

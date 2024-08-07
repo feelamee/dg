@@ -17,10 +17,10 @@ option(DG_ENGINE_TEST "enable building tests for engine" OFF)
 include(FetchContent)
 
 FetchContent_Declare(
-  SDL2
+  SDL3
   GIT_REPOSITORY "https://github.com/libsdl-org/SDL"
-  GIT_TAG "release-2.30.6")
-FetchContent_MakeAvailable(SDL2)
+  GIT_TAG "9493e6974f70a906950c9d8196c9a9982300f261")
+FetchContent_MakeAvailable(SDL3)
 
 set(GLM_ENABLE_CXX_20
     ON
@@ -44,8 +44,8 @@ target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 target_link_libraries(
   engine
-  PRIVATE #[[ SDL2::SDL2 ]] OpenGL::GLES3 glad::glad
-  PUBLIC glm::glm SDL2::SDL2)
+  PRIVATE #[[ SDL3::SDL3 ]] OpenGL::GLES3 glad::glad
+  PUBLIC glm::glm SDL3::SDL3)
 
 if(ANDROID)
   target_link_libraries(engine PRIVATE android log)

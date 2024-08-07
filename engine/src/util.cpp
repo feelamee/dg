@@ -1,6 +1,7 @@
 #include <engine/util.hpp>
 
-#include <SDL2/SDL_log.h>
+#include <SDL3/SDL_log.h>
+#include <cstdlib>
 
 namespace dg
 {
