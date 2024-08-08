@@ -4,3 +4,4 @@ build/
 .gradle/
 .cxx/
 orbi/android-project/android-sdk
+local.properties

@@ -16,6 +16,7 @@ android {
                 arguments '-DDG_ENGINE_TEST=OFF', '-DDG_ENGINE_SANITIZER=OFF', '-DDG_ORBI_SANITIZER=OFF', '-DANDROID_STL=c++_shared'
                 // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 abiFilters 'arm64-v8a'
+                cppFlags '-fexceptions'
             }
         }
     }
