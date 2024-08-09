@@ -21,6 +21,9 @@ public:
     enum class flag : unsigned
     {
         none = 0,
+
+        fullscreen,
+        resizeable,
     };
     friend flag operator|(flag, flag);
     friend flag& operator|=(flag&, flag);

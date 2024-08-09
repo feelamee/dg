@@ -69,6 +69,15 @@ window::window(context const& /*cxt*/, char const* const title, glm::u32vec2 siz
 {
     int internal_flags{ SDL_WINDOW_OPENGL };
 
+    if ((flags & flag::fullscreen) != flag::none)
+    {
+        internal_flags |= SDL_WINDOW_FULLSCREEN;
+    }
+    if ((flags & flag::resizeable) != flag::none)
+    {
+        internal_flags |= SDL_WINDOW_RESIZABLE;
+    }
+
     SDL_Window* sdl_window =
         SDL_CreateWindow(title, static_cast<int>(size.x), static_cast<int>(size.y), internal_flags);
     if (nullptr == sdl_window)
@@ -105,7 +114,6 @@ window::window(context const& /*cxt*/, char const* const title, glm::u32vec2 siz
 
     {
         int x{ 0 }, y{ 0 }, w{ 0 }, h{ 0 };
-        SDL_GetWindowPosition(sdl_window, &x, &y);
         SDL_GetWindowSize(sdl_window, &w, &h);
         glViewport(x, y, w, h);
     }
