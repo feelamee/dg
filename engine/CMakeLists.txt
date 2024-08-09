@@ -50,8 +50,8 @@ endif()
 
 target_link_libraries(
   engine
-  PRIVATE #[[ SDL3::SDL3 ]] glad::glad
-  PUBLIC glm::glm SDL3::SDL3)
+  PRIVATE #[[ SDL3::SDL3 ]] #[[ glad::glad ]]
+  PUBLIC glm::glm SDL3::SDL3 glad::glad)
 
 if(DG_ENGINE_SANITIZER)
   include("../cmake/sanitizer.cmake")
