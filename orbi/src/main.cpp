@@ -1,4 +1,5 @@
 #include <engine/context.hpp>
+#include <engine/error.hpp>
 #include <engine/window.hpp>
 
 #include <SDL3/SDL_events.h>
@@ -12,105 +13,13 @@
 #include <iostream>
 #include <string_view>
 
-#define GL_CHECK(expr)                                                                             \
-    {                                                                                              \
-        (expr);                                                                                    \
-        orbi::gl_check(__FILE__, __LINE__, #expr);                                                 \
-    }
-
-#define LOG_DEBUG(...)                                                                             \
-    {                                                                                              \
-        /* fprintf(stderr, "[DEBUG: %s: %d]:\n    ", __FILE__,                                     \
-        __LINE__); fprintf(stderr, __VA_ARGS__); */                                                \
-        log_debug(__LINE__, __FILE__, __VA_ARGS__);                                                \
-    }
-
 namespace orbi
 {
-void
-log_debug(int line, const char* fn, const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, fmt, args);
-    va_end(args);
-}
-
-int
-gl_check(std::string const& file, unsigned int line, std::string_view const expression)
-{
-    GLenum error_code = glGetError();
-    if (GL_NO_ERROR == error_code)
-    {
-        return EXIT_SUCCESS;
-    }
-
-    do
-    {
-        std::string error = "Unknown error";
-        std::string description = "No description";
-
-        // Decode the error code
-        switch (error_code)
-        {
-        case GL_INVALID_ENUM: {
-            error = "GL_INVALID_ENUM";
-            description = "An unacceptable value has been specified for an "
-                          "enumerated argument.";
-            break;
-        }
-
-        case GL_INVALID_VALUE: {
-            error = "GL_INVALID_VALUE";
-            description = "A numeric argument is out of range.";
-            break;
-        }
-
-        case GL_INVALID_OPERATION: {
-            error = "GL_INVALID_OPERATION";
-            description = "The specified operation is not allowed in the "
-                          "current state.";
-            break;
-        }
-
-        case GL_OUT_OF_MEMORY: {
-            error = "GL_OUT_OF_MEMORY";
-            description = "There is not enough memory left to execute the command.";
-            break;
-        }
-
-        case GL_INVALID_FRAMEBUFFER_OPERATION: {
-            error = "GL_INVALID_FRAMEBUFFER_OPERATION";
-            description = "The object bound to FRAMEBUFFER_BINDING is not "
-                          "\"framebuffer complete\".";
-            break;
-        }
-        }
-
-        LOG_DEBUG("[ %s : %d ]:"
-                  "\n    An internal OpenGL call failed"
-                  "\n    Expression:\n        %s"
-                  "\n    Error description:\n        %s\n",
-                  file.c_str(), line, expression.data(), description.c_str());
-
-        error_code = glGetError();
-    } while (false); // GL_NO_ERROR != error_code);
-
-    return EXIT_FAILURE;
-}
-
-enum error_t : int
-{
-    NO_ERROR = 0,
-
-    ERROR_COMPILE_SHADER = -1,
-};
 
 struct make_shader_result
 {
     GLuint id;
-
-    int error;
+    GLenum error;
 };
 
 make_shader_result
@@ -139,7 +48,7 @@ make_shader(GLenum type, std::string_view const src)
         GL_CHECK(glGetShaderInfoLog(res.id, 1024, &log_len, log.data()));
         std::cerr << __PRETTY_FUNCTION__ << ":\n";
         std::cerr << log.data() << std::endl;
-        res.error = error_t::ERROR_COMPILE_SHADER;
+        res.error = -1;
         return res;
     }
 
@@ -184,9 +93,9 @@ main()
     window win(ctx, "window", { 960, 590 }, window::flag::resizeable);
 
     auto const [vertex_shader, errc1] = orbi::make_shader(GL_VERTEX_SHADER, orbi::vertex_shader_src);
-    assert(errc1 == orbi::error_t::NO_ERROR);
+    assert(errc1 == GL_NO_ERROR);
     auto const [fragment_shader, errc2] = orbi::make_shader(GL_FRAGMENT_SHADER, orbi::fragment_shader_src);
-    assert(errc2 == orbi::error_t::NO_ERROR);
+    assert(errc2 == GL_NO_ERROR);
 
     GLuint const program_id = glCreateProgram();
     assert(program_id != 0);
