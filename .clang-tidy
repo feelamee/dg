@@ -67,6 +67,7 @@ Checks: '-*, # disable all to specify needed manually
         ,-cppcoreguidelines-pro-type-union-access
         ,-cppcoreguidelines-pro-type-vararg
         ,-cppcoreguidelines-owning-memory
+        ,-cppcoreguidelines-avoid-magic-numbers
         ,clang-analyzer-*
 
         ,misc-const-correctness
