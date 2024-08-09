@@ -1,4 +1,5 @@
 #include <engine/context.hpp>
+#include <engine/error.hpp>
 #include <engine/util.hpp>
 #include <engine/window.hpp>
 
@@ -115,7 +116,7 @@ window::window(context const& /*cxt*/, char const* const title, glm::u32vec2 siz
     {
         int x{ 0 }, y{ 0 }, w{ 0 }, h{ 0 };
         SDL_GetWindowSize(sdl_window, &w, &h);
-        glViewport(x, y, w, h);
+        GL_CHECK(glViewport(x, y, w, h));
     }
 
     auto* const p = new internal_data{ .sdl_window = sdl_window, .gl_context = gl_context };
@@ -148,8 +149,8 @@ window::clear_with(float r, float g, float b, float a)
     b = std::clamp(b, 0.f, 1.f);
     a = std::clamp(a, 0.f, 1.f);
 
-    glClearColor(r, g, b, a);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GL_CHECK(glClearColor(r, g, b, a));
+    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 } // namespace dg
