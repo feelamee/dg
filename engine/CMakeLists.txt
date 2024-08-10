@@ -39,11 +39,14 @@ target_sources(
   PRIVATE "include/engine/util.hpp"
           "src/util.cpp"
           "include/engine/context.hpp"
+          "src/context.cpp"
           "include/engine/shader_program.hpp"
           "src/shader_program.cpp"
-          "src/context.cpp"
           "src/error.cpp"
-          "include/engine/error.hpp")
+          "include/engine/error.hpp"
+          "include/engine/bindable.hpp"
+          "include/engine/bind_guard.hpp"
+          "src/bind_guard.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 

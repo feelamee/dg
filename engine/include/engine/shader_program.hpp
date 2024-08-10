@@ -1,5 +1,7 @@
 #pragma once
 
+#include <engine/bindable.hpp>
+
 #include <cstdint>
 #include <stdexcept>
 
@@ -8,7 +10,7 @@ namespace dg
 
 struct context;
 
-struct shader_program
+struct shader_program : public bindable
 {
 public:
     struct error : public std::runtime_error
@@ -26,7 +28,7 @@ public:
     shader_program& operator=(shader_program const&) = delete;
     shader_program& operator=(shader_program&&) = delete;
 
-    ~shader_program();
+    ~shader_program() override;
 
     enum class shader_t
     {
@@ -36,10 +38,13 @@ public:
 
     void attach_from_src(shader_t type, std::string_view src);
     bool link();
-    void use(bool is_use = true);
+
+    std::any bind() override;
+    void unbind(std::any data) override;
 
 private:
-    uint64_t handle{ 0 };
+    using handle_t = uint64_t;
+    handle_t handle{ 0 };
 };
 
 } // namespace dg

@@ -95,16 +95,21 @@ shader_program::link()
     return is_success;
 }
 
-void
-shader_program::use(bool is_use)
+std::any
+shader_program::bind()
 {
-    if (is_use)
-    {
-        GL_CHECK(glUseProgram(handle));
-    } else
-    {
-        GL_CHECK(glUseProgram(0));
-    }
+    int cur{ 0 };
+    GL_CHECK(glGetIntegerv(GL_CURRENT_PROGRAM, &cur));
+    GL_CHECK(glUseProgram(handle));
+
+    return static_cast<handle_t>(cur);
+}
+
+void
+shader_program::unbind(std::any data)
+{
+    GL_CHECK(glUseProgram(0));
+    GL_CHECK(glUseProgram(std::any_cast<handle_t>(data)));
 }
 
 } // namespace dg

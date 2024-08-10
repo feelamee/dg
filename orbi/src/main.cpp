@@ -1,3 +1,4 @@
+#include <engine/bind_guard.hpp>
 #include <engine/context.hpp>
 #include <engine/error.hpp>
 #include <engine/shader_program.hpp>
@@ -133,32 +134,33 @@ main()
 
         ctx.clear_window({ 0.2, 0.5, 1, 1 });
 
-        program.use();
-
-        SDL_Time ticks{};
-        assert(0 == SDL_GetCurrentTime(&ticks));
-        float fticks = ticks % 360'000'000'000 / 1E8;
-        GL_CHECK(glUniform3f(1, glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f));
-
         {
-            auto const size = ctx.window_size();
-            glm::mat4 const proj =
-                glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
-            glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
-            glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
-                                                               glm::vec3(1.0f, 1.0f, 1.0f)),
-                                                   glm::vec3(0.0f, 0.0f, 0.5f));
-            GL_CHECK(glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(proj)));
-            GL_CHECK(glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(view)));
-            GL_CHECK(glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(model)));
+            bind_guard _{ program };
+
+            SDL_Time ticks{};
+            assert(0 == SDL_GetCurrentTime(&ticks));
+            float fticks = ticks % 360'000'000'000 / 1E8;
+            GL_CHECK(glUniform3f(1, glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f));
+
+            {
+                auto const size = ctx.window_size();
+                glm::mat4 const proj =
+                    glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
+                glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+                glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
+                                                                   glm::vec3(1.0f, 1.0f, 1.0f)),
+                                                       glm::vec3(0.0f, 0.0f, 0.5f));
+                GL_CHECK(glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(proj)));
+                GL_CHECK(glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(view)));
+                GL_CHECK(glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(model)));
+            }
+
+            GL_CHECK(glBindVertexArray(vao));
+
+            GL_CHECK(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr));
+
+            GL_CHECK(glBindVertexArray(0));
         }
-
-        GL_CHECK(glBindVertexArray(vao));
-
-        GL_CHECK(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr));
-
-        GL_CHECK(glBindVertexArray(0));
-        program.use(false);
 
         ctx.swap_window();
     }
