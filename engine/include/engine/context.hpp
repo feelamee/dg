@@ -10,15 +10,15 @@
 namespace dg
 {
 
-struct context_error : public std::runtime_error
-{
-    explicit context_error(std::string const&);
-    context_error(char const*);
-};
-
 struct context
 {
 public:
+    struct error : public std::runtime_error
+    {
+        explicit error(std::string const&);
+        error(char const*);
+    };
+
     /*
      * @throws `context_error`, `std::bad_alloc`
      */

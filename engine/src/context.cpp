@@ -11,12 +11,12 @@
 namespace dg
 {
 
-context_error::context_error(std::string const& msg)
+context::error::error(std::string const& msg)
     : std::runtime_error(msg)
 {
 }
 
-context_error::context_error(char const* msg)
+context::error::error(char const* msg)
     : std::runtime_error(msg)
 {
 }
@@ -53,7 +53,7 @@ context::context(char const* const title, glm::u32vec2 size)
 {
     if (ctx != nullptr)
     {
-        throw context_error("context already created");
+        throw error("context already created");
     }
 
     flag_t flags{ SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE };
@@ -63,7 +63,7 @@ context::context(char const* const title, glm::u32vec2 size)
         SDL_CreateWindow(title, static_cast<int>(size.x), static_cast<int>(size.y), flags);
     if (nullptr == sdl_window)
     {
-        throw context_error(std::format("internal window init failed with: {}", SDL_GetError()));
+        throw error(std::format("internal window init failed with: {}", SDL_GetError()));
     }
 
     {
@@ -85,7 +85,7 @@ context::context(char const* const title, glm::u32vec2 size)
     SDL_GLContext gl_context = SDL_GL_CreateContext(sdl_window);
     if (nullptr == gl_context)
     {
-        throw context_error(std::format("internal create OpenGL context failed with: {}", SDL_GetError()));
+        throw error(std::format("internal create OpenGL context failed with: {}", SDL_GetError()));
     }
 
     const auto load_gl_fn =
@@ -97,7 +97,7 @@ context::context(char const* const title, glm::u32vec2 size)
         int w{ 0 }, h{ 0 };
         if (0 != SDL_GetWindowSize(sdl_window, &w, &h))
         {
-            throw context_error(std::format("getting window size failed with: {}", SDL_GetError()));
+            throw error(std::format("getting window size failed with: {}", SDL_GetError()));
         }
         GL_CHECK(glViewport(0, 0, w, h));
     }
@@ -144,7 +144,7 @@ context::window_size() const
     int w{ 0 }, h{ 0 };
     if (0 != SDL_GetWindowSize(data->sdl_window, &w, &h))
     {
-        throw context_error(std::format("error getting window size: {}", SDL_GetError()));
+        throw error(std::format("error getting window size: {}", SDL_GetError()));
     }
 
     return { w, h };
