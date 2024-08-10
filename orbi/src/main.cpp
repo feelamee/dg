@@ -1,9 +1,7 @@
 #include <engine/context.hpp>
 #include <engine/error.hpp>
-#include <engine/window.hpp>
 
 #include <SDL3/SDL_events.h>
-#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_time.h>
 
@@ -101,10 +99,9 @@ int
 main()
 {
     using namespace dg;
-    context ctx(context::flag::everything);
 
     glm::vec2 win_size{ 960, 590 };
-    window win(ctx, "window", win_size, window::flag::resizeable);
+    context ctx("window", win_size);
 
     auto const [vertex_shader, errc1] = orbi::make_shader(GL_VERTEX_SHADER, orbi::vertex_shader_src);
     assert(errc1 == GL_NO_ERROR);
@@ -186,14 +183,15 @@ main()
         {
             if (ev.type == SDL_EVENT_QUIT)
             {
-                return EXIT_SUCCESS;
+                goto cleanup;
             } else if (ev.type == SDL_EVENT_WINDOW_RESIZED)
             {
-                glViewport(0, 0, win.size().x, win.size().y);
+                auto const size = ctx.window_size();
+                glViewport(0, 0, size.x, size.y);
             }
         }
 
-        win.clear_with(0.2, 0.5, 1, 1);
+        ctx.clear_window({ 0.2, 0.5, 1, 1 });
 
         GL_CHECK(glUseProgram(program_id));
 
@@ -203,7 +201,7 @@ main()
         GL_CHECK(glUniform3f(1, glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f));
 
         {
-            auto const size = win.size();
+            auto const size = ctx.window_size();
             glm::mat4 const proj =
                 glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
             glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
@@ -222,9 +220,10 @@ main()
         GL_CHECK(glBindVertexArray(0));
         GL_CHECK(glUseProgram(0));
 
-        win.swap();
+        ctx.swap_window();
     }
 
+cleanup:
     GL_CHECK(glDeleteVertexArrays(1, &vao));
     GL_CHECK(glDeleteBuffers(1, &vbo));
     GL_CHECK(glDeleteBuffers(1, &vbe));

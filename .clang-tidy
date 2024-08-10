@@ -68,6 +68,7 @@ Checks: '-*, # disable all to specify needed manually
         ,-cppcoreguidelines-pro-type-vararg
         ,-cppcoreguidelines-owning-memory
         ,-cppcoreguidelines-avoid-magic-numbers
+        ,-cppcoreguidelines-avoid-do-while
         ,clang-analyzer-*
 
         ,misc-const-correctness

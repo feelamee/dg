@@ -1,6 +1,10 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
+
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 
 namespace dg
@@ -15,25 +19,12 @@ struct context_error : public std::runtime_error
 struct context
 {
 public:
-    enum class flag : unsigned
-    {
-        none = 0,
-
-        video = 1 << 0,
-        event = 1 << 1,
-
-        everything = video | event,
-    };
-    friend flag operator|(flag, flag);
-    friend flag& operator|=(flag&, flag);
-    friend flag operator&(flag, flag);
-
     /*
-     * @throws `std::engine_error`
+     * @throws `context_error`, `std::bad_alloc`
      */
-    context(flag flags = flag::none);
-    context(context&&) = default;
-    context(context const&);
+    context(char const* const window_title, glm::u32vec2 window_size);
+    context(context&&);
+    context(const context&) = delete;
 
     context& operator=(context);
     context& operator=(context&&) = delete;
@@ -41,10 +32,23 @@ public:
 
     ~context();
 
-private:
-    void init(flag);
+    void clear_window(glm::vec4 color = { 0, 0, 0, 1 });
+    void swap_window();
+    glm::u32vec2 window_size() const;
 
-    std::uint32_t init_flags;
+private:
+    static context const* ctx;
+
+    using flag_t = uint64_t;
+    void init(flag_t flags);
+
+    struct internal_data;
+    struct internal_data_deleter
+    {
+        void operator()(internal_data*);
+    };
+
+    std::unique_ptr<internal_data, internal_data_deleter> data;
 };
 
 } // namespace dg
