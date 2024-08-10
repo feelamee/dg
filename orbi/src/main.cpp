@@ -4,6 +4,7 @@
 #include <engine/mesh.hpp>
 #include <engine/mesh_loader.hpp>
 #include <engine/shader_program.hpp>
+#include <engine/vertex_array.hpp>
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
@@ -15,7 +16,6 @@
 
 #include <glad/glad.h>
 
-#include <array>
 #include <cstdlib>
 #include <string_view>
 
@@ -70,27 +70,8 @@ main()
     auto const mesh = load(model_t::obj, "orbi/res/cube.obj");
     assert(mesh.has_value());
 
-    GLuint vao{ 0 };
-    GL_CHECK(glGenVertexArrays(1, &vao));
-    GL_CHECK(glBindVertexArray(vao));
-
-    GLuint vbo{ 0 };
-    GL_CHECK(glGenBuffers(1, &vbo));
-    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo));
-
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mesh->vertices_bytelen(), mesh->vertices.data(), GL_STATIC_DRAW));
-    GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr));
-
-    GLuint vbe{ 0 };
-    GL_CHECK(glGenBuffers(1, &vbe));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbe));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indices_bytelen(), mesh->indices.data(), GL_STATIC_DRAW));
-
-    GL_CHECK(glEnableVertexAttribArray(0));
-
-    GL_CHECK(glBindVertexArray(0));
-    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    vertex_array vao(ctx);
+    vao.load(vertex_array::data_t::immutable, mesh.value());
 
     while (true)
     {
@@ -99,7 +80,7 @@ main()
         {
             if (ev.type == SDL_EVENT_QUIT)
             {
-                goto cleanup;
+                return EXIT_SUCCESS;
             } else if (ev.type == SDL_EVENT_WINDOW_RESIZED)
             {
                 auto const size = ctx.window_size();
@@ -130,20 +111,15 @@ main()
                 program.uniform(4, model);
             }
 
-            GL_CHECK(glBindVertexArray(vao));
+            {
+                bind_guard _{ vao };
 
-            GL_CHECK(glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
-
-            GL_CHECK(glBindVertexArray(0));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+            }
         }
 
         ctx.swap_window();
     }
-
-cleanup:
-    GL_CHECK(glDeleteVertexArrays(1, &vao));
-    GL_CHECK(glDeleteBuffers(1, &vbo));
-    GL_CHECK(glDeleteBuffers(1, &vbe));
 
     return EXIT_SUCCESS;
 }

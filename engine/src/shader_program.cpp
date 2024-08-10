@@ -51,9 +51,11 @@ shader_program::~shader_program() { GL_CHECK(glDeleteProgram(handle)); }
 void
 shader_program::attach_from_src(shader_t type, std::string_view src)
 {
+    // clang-format off
     GLenum shader_type = type == shader_t::fragment ? GL_FRAGMENT_SHADER
-                         : type == shader_t::vertex ? GL_VERTEX_SHADER
-                                                    : 0;
+                       : type == shader_t::vertex ? GL_VERTEX_SHADER
+                       : 0;
+    // clang-format on
     assert(shader_type != 0);
 
     GLuint id = glCreateShader(shader_type);
@@ -100,7 +102,7 @@ shader_program::link()
 std::any
 shader_program::bind()
 {
-    int cur{ 0 };
+    GLint cur{ 0 };
     GL_CHECK(glGetIntegerv(GL_CURRENT_PROGRAM, &cur));
     GL_CHECK(glUseProgram(handle));
 

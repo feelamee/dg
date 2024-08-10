@@ -50,7 +50,9 @@ target_sources(
           "include/engine/mesh.hpp"
           "src/mesh.cpp"
           "include/engine/mesh_loader.hpp"
-          "src/mesh_loader.cpp")
+          "src/mesh_loader.cpp"
+          "include/engine/vertex_array.hpp"
+          "src/vertex_array.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 
