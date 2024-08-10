@@ -5,6 +5,11 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_time.h>
+
+#include <glm/common.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
 
@@ -60,12 +65,19 @@ constexpr std::string_view vertex_shader_src = R"(
 
 layout (location = 0) in vec3 position;
 
+layout (location  = 1) uniform vec3 color;
+
+layout (location = 2) uniform mat4 projection;
+layout (location = 3) uniform mat4 view;
+layout (location = 4) uniform mat4 model;
+
+
 out vec4 vertex_color;
 
 void main()
 {
-    gl_Position = vec4(position, 1.0f);
-    vertex_color = vec4(.8f, .0f, .0f, 1.0f);
+    gl_Position = projection * view * model * vec4(position, 1.0f);
+    vertex_color = vec4(color, 1.0f);
 }
 )";
 
@@ -90,7 +102,9 @@ main()
 {
     using namespace dg;
     context ctx(context::flag::everything);
-    window win(ctx, "window", { 960, 590 }, window::flag::resizeable);
+
+    glm::vec2 win_size{ 960, 590 };
+    window win(ctx, "window", win_size, window::flag::resizeable);
 
     auto const [vertex_shader, errc1] = orbi::make_shader(GL_VERTEX_SHADER, orbi::vertex_shader_src);
     assert(errc1 == GL_NO_ERROR);
@@ -114,16 +128,32 @@ main()
     GL_CHECK(glDeleteShader(fragment_shader));
 
     // clang-format off
-    std::array<GLfloat, 12> vertices {
-        0.0f,  0.5f, 0.0f,
-       -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        1.0f,  1.0f, 0.0f,
+    std::array<GLfloat, 24> vertices {
+       -0.5f, -0.5f,  0.0f, // 0 lbf
+       -0.5f,  0.5f,  0.0f, // 1 luf
+        0.5f,  0.5f,  0.0f, // 2 ruf
+        0.5f, -0.5f,  0.0f, // 3 rbf
+
+       -0.5f, -0.5f, -1.0f, // 4 lbb
+       -0.5f,  0.5f, -1.0f, // 5 lub
+        0.5f,  0.5f, -1.0f, // 6 rub
+        0.5f, -0.5f, -1.0f, // 7 rbb
     };
 
-    std::array<GLuint, 6> indices {
+    std::array<GLuint, 30> indices {
         0, 1, 2,
         0, 2, 3,
+
+        4, 5, 6,
+        4, 6, 7,
+
+        1, 2, 5,
+        2, 5, 6,
+
+        0, 3, 7,
+        0, 7, 4,
+
+        
     };
     // clang-format on
 
@@ -136,7 +166,7 @@ main()
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo));
 
     GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW));
-    GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0));
+    GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr));
 
     GLuint vbe{ 0 };
     GL_CHECK(glGenBuffers(1, &vbe));
@@ -157,12 +187,34 @@ main()
             if (ev.type == SDL_EVENT_QUIT)
             {
                 return EXIT_SUCCESS;
+            } else if (ev.type == SDL_EVENT_WINDOW_RESIZED)
+            {
+                glViewport(0, 0, win.size().x, win.size().y);
             }
         }
 
         win.clear_with(0.2, 0.5, 1, 1);
 
         GL_CHECK(glUseProgram(program_id));
+
+        SDL_Time ticks{};
+        assert(0 == SDL_GetCurrentTime(&ticks));
+        float fticks = ticks % 360'000'000'000 / 1E8;
+        GL_CHECK(glUniform3f(1, glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f));
+
+        {
+            auto const size = win.size();
+            glm::mat4 const proj =
+                glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
+            glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+            glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
+                                                               glm::vec3(1.0f, 1.0f, 1.0f)),
+                                                   glm::vec3(0.0f, 0.0f, 0.5f));
+            GL_CHECK(glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(proj)));
+            GL_CHECK(glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(view)));
+            GL_CHECK(glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(model)));
+        }
+
         GL_CHECK(glBindVertexArray(vao));
 
         GL_CHECK(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr));

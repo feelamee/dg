@@ -7,7 +7,7 @@
   - [x] create minimal abstraction for SDL window
   - [x] test on android
   - [ ] add BUILD.md with instructions of how to build on linux/android
-  - [ ] remove hardcoded android triplet from engine/CMakeLists.txt:20
+  - [x] remove hardcoded android triplet from engine/CMakeLists.txt:20
   - [ ] change default sdl icons
 
 

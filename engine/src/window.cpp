@@ -9,6 +9,7 @@
 #include <glad/glad.h>
 
 #include <format>
+#include <iostream>
 #include <memory>
 
 namespace dg
@@ -151,6 +152,20 @@ window::clear_with(float r, float g, float b, float a)
 
     GL_CHECK(glClearColor(r, g, b, a));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
+}
+
+glm::u32vec2
+window::size() const
+{
+    glm::i32vec2 res{};
+    int const errc = SDL_GetWindowSize(data->sdl_window, &res.x, &res.y);
+    if (errc != 0)
+    {
+        std::cerr << SDL_GetError() << std::endl;
+        return glm::i32vec2{};
+    }
+
+    return res;
 }
 
 } // namespace dg

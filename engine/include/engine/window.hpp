@@ -47,6 +47,8 @@ public:
     void clear_with(float r, float g, float b, float a);
     void swap() const;
 
+    [[nodiscard]] glm::u32vec2 size() const;
+
 private:
     struct internal_data;
     struct internal_data_deleter
