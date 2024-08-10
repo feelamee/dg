@@ -2,6 +2,9 @@
 
 #include <engine/bindable.hpp>
 
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+
 #include <cstdint>
 #include <stdexcept>
 
@@ -41,6 +44,10 @@ public:
 
     std::any bind() override;
     void unbind(std::any data) override;
+
+    using uniform_location = uint32_t;
+    void uniform(uniform_location id, glm::vec3 const& vec);
+    void uniform(uniform_location id, glm::mat4 const& mat);
 
 private:
     using handle_t = uint64_t;

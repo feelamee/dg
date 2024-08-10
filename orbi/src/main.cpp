@@ -140,7 +140,7 @@ main()
             SDL_Time ticks{};
             assert(0 == SDL_GetCurrentTime(&ticks));
             float fticks = ticks % 360'000'000'000 / 1E8;
-            GL_CHECK(glUniform3f(1, glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f));
+            program.uniform(1, { glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f });
 
             {
                 auto const size = ctx.window_size();
@@ -150,9 +150,9 @@ main()
                 glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
                                                                    glm::vec3(1.0f, 1.0f, 1.0f)),
                                                        glm::vec3(0.0f, 0.0f, 0.5f));
-                GL_CHECK(glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(proj)));
-                GL_CHECK(glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(view)));
-                GL_CHECK(glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(model)));
+                program.uniform(2, proj);
+                program.uniform(3, view);
+                program.uniform(4, model);
             }
 
             GL_CHECK(glBindVertexArray(vao));

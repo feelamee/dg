@@ -1,10 +1,12 @@
+#include <engine/bind_guard.hpp>
 #include <engine/context.hpp>
 #include <engine/error.hpp>
 #include <engine/shader_program.hpp>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <glad/glad.h>
 
-#include <GLES2/gl2.h>
 #include <format>
 
 namespace dg
@@ -110,6 +112,22 @@ shader_program::unbind(std::any data)
 {
     GL_CHECK(glUseProgram(0));
     GL_CHECK(glUseProgram(std::any_cast<handle_t>(data)));
+}
+
+void
+shader_program::uniform(uniform_location id, glm::vec3 const& vec)
+{
+    bind_guard _{ *this };
+
+    GL_CHECK(glUniform3f(id, vec.x, vec.y, vec.z));
+}
+
+void
+shader_program::uniform(uniform_location id, glm::mat4 const& mat)
+{
+    bind_guard _{ *this };
+
+    GL_CHECK(glUniformMatrix4fv(id, 1, GL_FALSE, glm::value_ptr(mat)));
 }
 
 } // namespace dg
