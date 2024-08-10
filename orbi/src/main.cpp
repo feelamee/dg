@@ -1,5 +1,6 @@
 #include <engine/context.hpp>
 #include <engine/error.hpp>
+#include <engine/shader_program.hpp>
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
@@ -13,50 +14,7 @@
 
 #include <array>
 #include <cstdlib>
-#include <iostream>
 #include <string_view>
-
-namespace orbi
-{
-
-struct make_shader_result
-{
-    GLuint id;
-    GLenum error;
-};
-
-make_shader_result
-make_shader(GLenum type, std::string_view const src)
-{
-    make_shader_result res{};
-    res.id = glCreateShader(type);
-    if (res.id == 0)
-    {
-        res.error = glGetError();
-        return res;
-    }
-
-    char const* const cstr = src.data();
-    int const size{ static_cast<int>(src.size()) };
-    GL_CHECK(glShaderSource(res.id, 1, &cstr, &size));
-
-    GL_CHECK(glCompileShader(res.id));
-
-    GLint is_success{ GL_TRUE };
-    GL_CHECK(glGetShaderiv(res.id, GL_COMPILE_STATUS, &is_success));
-    if (is_success != GL_TRUE)
-    {
-        GLsizei log_len{ 0 };
-        std::array<GLchar, 1024> log{ '\0' };
-        GL_CHECK(glGetShaderInfoLog(res.id, 1024, &log_len, log.data()));
-        std::cerr << __PRETTY_FUNCTION__ << ":\n";
-        std::cerr << log.data() << std::endl;
-        res.error = -1;
-        return res;
-    }
-
-    return res;
-}
 
 constexpr std::string_view vertex_shader_src = R"(
 #version 320 es
@@ -93,8 +51,6 @@ void main()
 }
 )";
 
-} // namespace orbi
-
 int
 main()
 {
@@ -103,26 +59,10 @@ main()
     glm::vec2 win_size{ 960, 590 };
     context ctx("window", win_size);
 
-    auto const [vertex_shader, errc1] = orbi::make_shader(GL_VERTEX_SHADER, orbi::vertex_shader_src);
-    assert(errc1 == GL_NO_ERROR);
-    auto const [fragment_shader, errc2] = orbi::make_shader(GL_FRAGMENT_SHADER, orbi::fragment_shader_src);
-    assert(errc2 == GL_NO_ERROR);
-
-    GLuint const program_id = glCreateProgram();
-    assert(program_id != 0);
-
-    GL_CHECK(glAttachShader(program_id, vertex_shader));
-    GL_CHECK(glAttachShader(program_id, fragment_shader));
-
-    GL_CHECK(glLinkProgram(program_id));
-    {
-        GLint is_success{ false };
-        GL_CHECK(glGetProgramiv(program_id, GL_LINK_STATUS, &is_success));
-        assert(is_success);
-    }
-
-    GL_CHECK(glDeleteShader(vertex_shader));
-    GL_CHECK(glDeleteShader(fragment_shader));
+    shader_program program(ctx);
+    program.attach_from_src(shader_program::shader_t::fragment, fragment_shader_src);
+    program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
+    assert(program.link());
 
     // clang-format off
     std::array<GLfloat, 24> vertices {
@@ -193,7 +133,7 @@ main()
 
         ctx.clear_window({ 0.2, 0.5, 1, 1 });
 
-        GL_CHECK(glUseProgram(program_id));
+        program.use();
 
         SDL_Time ticks{};
         assert(0 == SDL_GetCurrentTime(&ticks));
@@ -218,7 +158,7 @@ main()
         GL_CHECK(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr));
 
         GL_CHECK(glBindVertexArray(0));
-        GL_CHECK(glUseProgram(0));
+        program.use(false);
 
         ctx.swap_window();
     }

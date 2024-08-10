@@ -118,7 +118,7 @@ context::operator=(context ctx)
 {
     using std::swap;
 
-    std::swap(data, ctx.data);
+    swap(data, ctx.data);
 
     return *this;
 }

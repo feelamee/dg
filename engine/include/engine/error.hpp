@@ -16,7 +16,7 @@
     }
 
 #else
-#define GL_CHECK(expr) (expr);
+#define GL_CHECK(expr) (expr)
 #define LOG_DEBUG(...)
 #endif
 
