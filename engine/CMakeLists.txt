@@ -36,14 +36,8 @@ add_subdirectory("deps/glad/")
 add_library(engine SHARED)
 target_sources(
   engine
-  PRIVATE "include/engine/util.hpp"
-          "src/util.cpp"
-          "include/engine/context.hpp"
-          "src/context.cpp"
-          "include/engine/window.hpp"
-          "src/window.cpp"
-          "src/error.cpp"
-          "include/engine/error.hpp")
+  PRIVATE "include/engine/util.hpp" "src/util.cpp" "include/engine/context.hpp"
+          "src/context.cpp" "src/error.cpp" "include/engine/error.hpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 

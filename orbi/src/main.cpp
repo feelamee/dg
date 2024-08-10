@@ -1,8 +1,6 @@
 #include <engine/context.hpp>
-#include <engine/window.hpp>
 
 #include <SDL3/SDL_events.h>
-#include <SDL3/SDL_hints.h>
 
 #include <cstdlib>
 
@@ -10,8 +8,9 @@ int
 main()
 {
     using namespace dg;
-    context ctx(context::flag::everything);
-    window win(ctx, "window", { 590, 960 });
+
+    context ctx("window", { 590, 960 });
+
     while (true)
     {
         SDL_Event ev;
@@ -23,8 +22,9 @@ main()
             }
         }
 
-        win.clear_with(0.2, 0.5, 1, 1);
-        win.swap();
+        ctx.clear_window({ 0.2, 0.5, 1, 1 });
+        ctx.swap_window();
     }
+
     return EXIT_SUCCESS;
 }
