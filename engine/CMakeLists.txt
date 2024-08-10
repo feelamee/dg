@@ -46,7 +46,11 @@ target_sources(
           "include/engine/error.hpp"
           "include/engine/bindable.hpp"
           "include/engine/bind_guard.hpp"
-          "src/bind_guard.cpp")
+          "src/bind_guard.cpp"
+          "include/engine/mesh.hpp"
+          "src/mesh.cpp"
+          "include/engine/mesh_loader.hpp"
+          "src/mesh_loader.cpp")
 target_compile_features(engine PRIVATE cxx_std_20)
 target_include_directories(engine PUBLIC "include/")
 

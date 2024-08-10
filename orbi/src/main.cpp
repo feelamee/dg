@@ -1,6 +1,8 @@
 #include <engine/bind_guard.hpp>
 #include <engine/context.hpp>
 #include <engine/error.hpp>
+#include <engine/mesh.hpp>
+#include <engine/mesh_loader.hpp>
 #include <engine/shader_program.hpp>
 
 #include <SDL3/SDL_events.h>
@@ -65,35 +67,8 @@ main()
     program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
     assert(program.link());
 
-    // clang-format off
-    std::array<GLfloat, 24> vertices {
-       -0.5f, -0.5f,  0.0f, // 0 lbf
-       -0.5f,  0.5f,  0.0f, // 1 luf
-        0.5f,  0.5f,  0.0f, // 2 ruf
-        0.5f, -0.5f,  0.0f, // 3 rbf
-
-       -0.5f, -0.5f, -1.0f, // 4 lbb
-       -0.5f,  0.5f, -1.0f, // 5 lub
-        0.5f,  0.5f, -1.0f, // 6 rub
-        0.5f, -0.5f, -1.0f, // 7 rbb
-    };
-
-    std::array<GLuint, 30> indices {
-        0, 1, 2,
-        0, 2, 3,
-
-        4, 5, 6,
-        4, 6, 7,
-
-        1, 2, 5,
-        2, 5, 6,
-
-        0, 3, 7,
-        0, 7, 4,
-
-        
-    };
-    // clang-format on
+    auto const mesh = load(model_t::obj, "orbi/res/cube.obj");
+    assert(mesh.has_value());
 
     GLuint vao{ 0 };
     GL_CHECK(glGenVertexArrays(1, &vao));
@@ -103,13 +78,13 @@ main()
     GL_CHECK(glGenBuffers(1, &vbo));
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo));
 
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW));
+    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mesh->vertices_bytelen(), mesh->vertices.data(), GL_STATIC_DRAW));
     GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr));
 
     GLuint vbe{ 0 };
     GL_CHECK(glGenBuffers(1, &vbe));
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbe));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices.data(), GL_STATIC_DRAW));
+    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indices_bytelen(), mesh->indices.data(), GL_STATIC_DRAW));
 
     GL_CHECK(glEnableVertexAttribArray(0));
 
@@ -149,7 +124,7 @@ main()
                 glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
                 glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
                                                                    glm::vec3(1.0f, 1.0f, 1.0f)),
-                                                       glm::vec3(0.0f, 0.0f, 0.5f));
+                                                       glm::vec3(0.0f, 0.0f, 0.0f));
                 program.uniform(2, proj);
                 program.uniform(3, view);
                 program.uniform(4, model);
@@ -157,7 +132,7 @@ main()
 
             GL_CHECK(glBindVertexArray(vao));
 
-            GL_CHECK(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr));
+            GL_CHECK(glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
 
             GL_CHECK(glBindVertexArray(0));
         }
