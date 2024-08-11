@@ -27,7 +27,53 @@ constexpr std::string_view vertex_shader_src = R"(
 #version 320 es
 
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
+layout (location = 1) in vec3 in_normal;
+
+layout (location = 2) uniform mat4 projection;
+layout (location = 3) uniform mat4 view;
+layout (location = 4) uniform mat4 model;
+
+out vec3 normal;
+out vec3 fragment_position;
+
+void main()
+{
+    vec4 pos = vec4(position, 1.0f);
+    gl_Position = projection * view * model * pos;
+    fragment_position = vec3(model * pos);
+    normal = in_normal;
+}
+)";
+
+constexpr std::string_view fragment_shader_src = R"(
+#version 320 es
+precision mediump float;
+
+in vec3 normal;
+in vec3 fragment_position;
+
+out vec4 color;
+
+layout (location = 5) uniform vec4 vertex_color;
+layout (location = 6) uniform vec3 light_color;
+layout (location = 7) uniform vec3 light_position;
+layout (location = 8) uniform float ambient_strength;
+
+void main()
+{
+    vec3 norm = normalize(normal);
+    vec3 dir = normalize(light_position - fragment_position);
+    float diff = max(dot(norm, dir), 0.0f);
+    vec3 diffuse = diff * light_color;
+    vec3 ambient = ambient_strength * light_color;
+    color = vec4(ambient + diffuse, 1.0f) * vertex_color;
+}
+)";
+
+constexpr std::string_view light_source_vertex_shader_src = R"(
+#version 320 es
+
+layout (location = 0) in vec3 position;
 
 layout (location = 2) uniform mat4 projection;
 layout (location = 3) uniform mat4 view;
@@ -39,18 +85,17 @@ void main()
 }
 )";
 
-constexpr std::string_view fragment_shader_src = R"(
+constexpr std::string_view light_source_fragment_shader_src = R"(
 #version 320 es
 precision mediump float;
 
 out vec4 color;
 
 layout (location = 5) uniform vec4 vertex_color;
-layout (location = 6) uniform vec3 light_color;
 
 void main()
 {
-    color = vec4(light_color, 1.0f) * vertex_color;
+    color = vertex_color;
 }
 )";
 
@@ -69,8 +114,8 @@ main(int /*argc*/, char** argv)
     assert(program.link());
 
     shader_program light_source_program(ctx);
-    light_source_program.attach_from_src(shader_program::shader_t::fragment, fragment_shader_src);
-    light_source_program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
+    light_source_program.attach_from_src(shader_program::shader_t::fragment, light_source_fragment_shader_src);
+    light_source_program.attach_from_src(shader_program::shader_t::vertex, light_source_vertex_shader_src);
     assert(light_source_program.link());
 
     using fspath = std::filesystem::path;
@@ -80,24 +125,25 @@ main(int /*argc*/, char** argv)
     assert(cube_mesh.has_value());
 
     vertex_array cube_vao(ctx);
-    cube_vao.load(0, vertex_array::data_t::immutable, cube_mesh.value().vertices, cube_mesh.value().vertex_indices);
-    cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals, cube_mesh.value().normal_indices);
+    cube_vao.load(0, vertex_array::data_t::immutable, cube_mesh.value().vertices);
+    cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals);
+    cube_vao.load_indices(vertex_array::data_t::immutable, cube_mesh.value().vertex_indices);
 
     auto const obj_mesh = load(model_t::obj, resdir / "torus.obj");
     assert(obj_mesh.has_value());
 
     vertex_array obj_vao(ctx);
-    obj_vao.load(0, vertex_array::data_t::immutable, obj_mesh.value().vertices, obj_mesh.value().vertex_indices);
-    obj_vao.load(1, vertex_array::data_t::immutable, obj_mesh.value().normals, obj_mesh.value().normal_indices);
+    obj_vao.load(0, vertex_array::data_t::immutable, obj_mesh.value().vertices);
+    obj_vao.load(1, vertex_array::data_t::immutable, obj_mesh.value().normals);
+    obj_vao.load_indices(vertex_array::data_t::immutable, obj_mesh.value().vertex_indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
 
     vertex_array plane_vao(ctx);
-    plane_vao.load(0, vertex_array::data_t::immutable, plane_mesh.value().vertices,
-                   plane_mesh.value().vertex_indices);
-    plane_vao.load(1, vertex_array::data_t::immutable, plane_mesh.value().normals,
-                   plane_mesh.value().normal_indices);
+    plane_vao.load(0, vertex_array::data_t::immutable, plane_mesh.value().vertices);
+    plane_vao.load(1, vertex_array::data_t::immutable, plane_mesh.value().normals);
+    plane_vao.load_indices(vertex_array::data_t::immutable, plane_mesh.value().vertex_indices);
 
     struct camera
     {
@@ -132,10 +178,11 @@ main(int /*argc*/, char** argv)
 
     struct light
     {
+        glm::vec3 position{};
         glm::vec3 color{};
-        float ambient{};
+        float ambient_strength{};
     };
-    light const light_source{ .color = { 1.0f, 1.0f, 1.0f }, .ambient = 0.1f };
+    light const light_source{ .position = { 1.5f, 3.0f, -2.0f }, .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.1f };
 
     while (true)
     {
@@ -257,6 +304,8 @@ main(int /*argc*/, char** argv)
 
             proj = glm::perspective(glm::radians(45.0f), ratio, 0.1f, 100.0f);
             view = glm::lookAt(cam.position, cam.position + cam.direction, cam.up);
+
+            program.uniform(7, light_source.position);
         }
 
         {
@@ -264,7 +313,8 @@ main(int /*argc*/, char** argv)
 
             program.uniform(2, proj);
             program.uniform(3, view);
-            program.uniform(6, light_source.ambient * light_source.color);
+            program.uniform(6, light_source.color);
+            program.uniform(8, light_source.ambient_strength);
 
             {
                 glm::mat4 model{ 1.0f };
@@ -297,11 +347,10 @@ main(int /*argc*/, char** argv)
 
             light_source_program.uniform(2, proj);
             light_source_program.uniform(3, view);
-            light_source_program.uniform(6, glm::vec3{ 1.0f, 1.0f, 1.0f });
 
             glm::mat4 model{ 1.0f };
+            model = glm::translate(model, light_source.position);
             model = glm::scale(model, glm::vec3{ 0.25f });
-            model = glm::translate(model, glm::vec3{ 6.0f, 15.0f, -10.0f });
 
             light_source_program.uniform(4, model);
             light_source_program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });

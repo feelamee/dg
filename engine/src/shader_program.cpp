@@ -140,4 +140,12 @@ shader_program::uniform(uniform_location id, glm::mat4 const& mat)
     GL_CHECK(glUniformMatrix4fv(id, 1, GL_FALSE, glm::value_ptr(mat)));
 }
 
+void
+shader_program::uniform(uniform_location id, float v)
+{
+    bind_guard _{ *this };
+
+    GL_CHECK(glUniform1f(id, v));
+}
+
 } // namespace dg
