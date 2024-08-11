@@ -52,6 +52,9 @@ Something like that for my pc.
   sdk.dir=/home/missed/code/dg/orbi/android-project/android-sdk
 ````
 
+Carefully read and accept licenses..
+Or just `yes | ./android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses` if you dont like all this lawyer nonsense.
+
 After connect you phone and just run:
 ```sh
   ./gradlew installDebug
@@ -68,7 +71,7 @@ How to configure environment on I will leave to Windows lovers :)
 
 - ambient and diffuse lightning implemented, but works with glitches
   in `orbi` due to incorrect loading of normals from .obj file
-- memory leak.
-  On my machine this is always 3730 bytes. It reproduces even on simple example with `SDL_Init` and `SDL_Quit`.
-  So, maybe SDL just leave memory unfreed, because app althrough will exit.
+- memory leak
+  on my machine this is always 3730 bytes. It reproduces even on simple example with `SDL_Init` and `SDL_Quit`.
+  So, maybe SDL just leave memory unfreed, because up althrough will exit.
   On other SDL backend behaviour may differ.
