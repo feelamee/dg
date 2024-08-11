@@ -69,7 +69,7 @@ vertex_array::load(data_t type, mesh const& m)
     GLuint vbe{ 0 };
     GL_CHECK(glGenBuffers(1, &vbe));
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbe));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, m.indices_bytelen(), m.indices.data(), draw_type));
+    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, m.indices_bytelen(), m.vertex_indices.data(), draw_type));
 
     GL_CHECK(glEnableVertexAttribArray(0));
 

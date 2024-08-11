@@ -269,7 +269,7 @@ main(int /*argc*/, char** argv)
 
                 bind_guard _{ obj_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
             }
 
             {
@@ -282,7 +282,7 @@ main(int /*argc*/, char** argv)
 
                 bind_guard _{ plane_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
             }
         }
 
@@ -302,7 +302,7 @@ main(int /*argc*/, char** argv)
 
             bind_guard _2{ cube_vao };
 
-            GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+            GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
         }
 
         ctx.swap_window();

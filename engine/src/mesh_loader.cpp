@@ -5,9 +5,12 @@
 
 #include <SDL3/SDL_iostream.h>
 
+#include "engine/vertex_array.hpp"
+
 #include <filesystem>
 #include <optional>
 #include <sstream>
+#include <string>
 
 namespace dg
 {
@@ -41,6 +44,7 @@ load_obj(std::filesystem::path const& filename)
         file << buf;
     }
 
+    // TODO: rewrite
     std::string line;
     while (std::getline(file, line))
     {
@@ -57,14 +61,27 @@ load_obj(std::filesystem::path const& filename)
                 res.vertices.push_back(y);
                 res.vertices.push_back(z);
             }
+        } else if (prefix == "vn")
+        {
+            float x{}, y{}, z{};
+            if (iss >> x >> y >> z)
+            {
+                res.normals.push_back(x);
+                res.normals.push_back(y);
+                res.normals.push_back(z);
+            }
         } else if (prefix == "f")
         {
-            uint32_t index1{}, index2{}, index3{};
-            if (iss >> index1 >> index2 >> index3)
+            std::string tok;
+            while (iss >> tok)
             {
-                res.indices.push_back(index1 - 1);
-                res.indices.push_back(index2 - 1);
-                res.indices.push_back(index3 - 1);
+                int v{}, vt{}, vn{};
+
+                int const n = std::sscanf(tok.c_str(), "%d/%d/%d", &v, &vt, &vn);
+                if (n != 3) break;
+
+                res.vertex_indices.push_back(v - 1);
+                res.normal_indices.push_back(vn - 1);
             }
         }
     }
