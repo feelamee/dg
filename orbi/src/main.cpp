@@ -28,19 +28,13 @@ constexpr std::string_view vertex_shader_src = R"(
 
 layout (location = 0) in vec3 position;
 
-layout (location  = 1) uniform vec4 color;
-
 layout (location = 2) uniform mat4 projection;
 layout (location = 3) uniform mat4 view;
 layout (location = 4) uniform mat4 model;
 
-
-out vec4 vertex_color;
-
 void main()
 {
     gl_Position = projection * view * model * vec4(position, 1.0f);
-    vertex_color = color;
 }
 )";
 
@@ -48,13 +42,14 @@ constexpr std::string_view fragment_shader_src = R"(
 #version 320 es
 precision mediump float;
 
-in vec4 vertex_color;
-
 out vec4 color;
+
+layout (location = 5) uniform vec4 vertex_color;
+layout (location = 6) uniform vec3 light_color;
 
 void main()
 {
-    color = vertex_color;
+    color = vec4(light_color, 1.0f) * vertex_color;
 }
 )";
 
@@ -71,6 +66,11 @@ main(int /*argc*/, char** argv)
     program.attach_from_src(shader_program::shader_t::fragment, fragment_shader_src);
     program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
     assert(program.link());
+
+    shader_program light_source_program(ctx);
+    light_source_program.attach_from_src(shader_program::shader_t::fragment, fragment_shader_src);
+    light_source_program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
+    assert(light_source_program.link());
 
     using fspath = std::filesystem::path;
     fspath const resdir{ fspath(argv[0]).parent_path() / context::resources_path() };
@@ -102,9 +102,9 @@ main(int /*argc*/, char** argv)
         glm::vec3 up{};
     };
 
-    float speed = 0.1f;
-    glm::vec3 init_camera_position{ 0.0f, 0.0f, 10.0f };
-    glm::vec3 init_camera_direction{ 0.0f, 0.0f, -1.0f };
+    float const speed = 0.1f;
+    glm::vec3 const init_camera_position{ 0.0f, 0.0f, 10.0f };
+    glm::vec3 const init_camera_direction{ 0.0f, 0.0f, -1.0f };
 
     camera cam{ .position = init_camera_position,
                 .direction = init_camera_direction,
@@ -123,6 +123,13 @@ main(int /*argc*/, char** argv)
 
     float pitch{ 0 };
     float yaw{ -90 };
+
+    struct light
+    {
+        glm::vec3 color{};
+        float ambient{};
+    };
+    light const light_source{ .color = { 1.0f, 1.0f, 1.0f }, .ambient = 0.1f };
 
     while (true)
     {
@@ -236,29 +243,29 @@ main(int /*argc*/, char** argv)
 
         ctx.clear_window({ 0.2, 0.5, 1, 1 });
 
+        glm::mat4 proj{ 1.0f };
+        glm::mat4 view{ 1.0f };
+        {
+            auto const size = ctx.window_size();
+            float const ratio = static_cast<float>(size.x) / static_cast<float>(size.y);
+
+            proj = glm::perspective(glm::radians(45.0f), ratio, 0.1f, 100.0f);
+            view = glm::lookAt(cam.position, cam.position + cam.direction, cam.up);
+        }
+
         {
             bind_guard _{ program };
 
-            {
-                auto const size = ctx.window_size();
-                float const ratio = static_cast<float>(size.x) / static_cast<float>(size.y);
-
-                glm::mat4 proj{ 1.0f };
-                proj = glm::perspective(glm::radians(45.0f), ratio, 0.1f, 100.0f);
-
-                glm::mat4 view{ 1.0f };
-                view = glm::lookAt(cam.position, cam.position + cam.direction, cam.up);
-
-                program.uniform(2, proj);
-                program.uniform(3, view);
-            }
+            program.uniform(2, proj);
+            program.uniform(3, view);
+            program.uniform(6, light_source.ambient * light_source.color);
 
             {
                 glm::mat4 model{ 1.0f };
                 model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
                 program.uniform(4, model);
-                program.uniform(1, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
+                program.uniform(5, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
 
                 bind_guard _{ obj_vao };
 
@@ -271,35 +278,43 @@ main(int /*argc*/, char** argv)
                 model = glm::translate(model, glm::vec3{ 0.0f, -1.0f, 0.0f });
 
                 program.uniform(4, model);
-                program.uniform(1, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
 
                 bind_guard _{ plane_vao };
 
                 GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
+        }
 
-            {
-                glm::mat4 model{ 1.0f };
-                model = glm::scale(model, glm::vec3{ 0.25f });
-                model = glm::translate(model, glm::vec3{ 6.0f, 15.0f, -10.0f });
+        {
+            bind_guard _1{ light_source_program };
 
-                program.uniform(4, model);
-                program.uniform(1, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+            light_source_program.uniform(2, proj);
+            light_source_program.uniform(3, view);
+            light_source_program.uniform(6, glm::vec3{ 1.0f, 1.0f, 1.0f });
 
-                bind_guard _{ cube_vao };
+            glm::mat4 model{ 1.0f };
+            model = glm::scale(model, glm::vec3{ 0.25f });
+            model = glm::translate(model, glm::vec3{ 6.0f, 15.0f, -10.0f });
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
-            }
+            light_source_program.uniform(4, model);
+            light_source_program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
+            bind_guard _2{ cube_vao };
+
+            GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
         }
 
         ctx.swap_window();
 
-        SDL_Time ticks{};
-        assert(0 == SDL_GetCurrentTime(&ticks));
-        float fticks = ticks % 360'000'000'000 / 1E8;
+        {
+            SDL_Time ticks{};
+            assert(0 == SDL_GetCurrentTime(&ticks));
+            float fticks = ticks % 360'000'000'000 / 1E8;
 
-        delta_time = fticks - last_ticks;
-        last_ticks = fticks;
+            delta_time = fticks - last_ticks;
+            last_ticks = fticks;
+        }
     }
 
     return EXIT_SUCCESS;
