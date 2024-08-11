@@ -28,17 +28,18 @@ BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBraces: Custom
 BraceWrapping:   
-  AfterClass:      true
+  AfterClass:            true
   AfterControlStatement: true
-  AfterEnum:       true
-  AfterFunction:   true
-  AfterNamespace:  true
-  BeforeLambdaBody: true
-  AfterStruct:     true
-  AfterUnion:      true
-  BeforeCatch:     false
-  BeforeElse:      false
-  IndentBraces:    false
+  AfterEnum:             true
+  AfterFunction:         true
+  AfterNamespace:        true
+  BeforeLambdaBody:      true
+  AfterStruct:           true
+  AfterUnion:            true
+  BeforeCatch:           false
+  BeforeElse:            false
+  IndentBraces:          false
+  AfterCaseLabel:        true
 BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true

@@ -55,6 +55,9 @@ public:
     };
     void enable(capability);
 
+    void window_relative_mouse_mode(bool enable);
+    void window_mouse_position(glm::vec2 pos);
+
 private:
     static context const* ctx;
 

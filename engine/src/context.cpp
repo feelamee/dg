@@ -3,6 +3,7 @@
 #include <engine/util.hpp>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_video.h>
 
 #include <glad/glad.h>
@@ -194,6 +195,18 @@ context::enable(capability c)
     }
 
     unreachable();
+}
+
+void
+context::window_relative_mouse_mode(bool enable)
+{
+    SDL_SetWindowRelativeMouseMode(data->sdl_window, enable);
+}
+
+void
+context::window_mouse_position(glm::vec2 pos)
+{
+    SDL_WarpMouseInWindow(data->sdl_window, pos.x, pos.y);
 }
 
 } // namespace dg

@@ -34,5 +34,7 @@ if(DG_ORBI_PEDANTIC)
   target_link_libraries(orbi PRIVATE pedantic)
 endif()
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res"
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_target(
+  copy-resources ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/res"
+          "${CMAKE_CURRENT_BINARY_DIR}/res")

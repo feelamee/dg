@@ -7,6 +7,7 @@
 #include <engine/vertex_array.hpp>
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_time.h>
 
@@ -16,8 +17,10 @@
 
 #include <glad/glad.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 #include <string_view>
 
 constexpr std::string_view vertex_shader_src = R"(
@@ -56,7 +59,7 @@ void main()
 )";
 
 int
-main(int argc, char** argv)
+main(int /*argc*/, char** argv)
 {
     using namespace dg;
 
@@ -69,26 +72,166 @@ main(int argc, char** argv)
     program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
     assert(program.link());
 
-    auto const mesh = load(model_t::obj, std::filesystem::path(argv[0]).parent_path() /
-                                             context::resources_path() / "torus.obj");
-    assert(mesh.has_value());
+    using fspath = std::filesystem::path;
+    fspath const resdir{ fspath(argv[0]).parent_path() / context::resources_path() };
 
-    vertex_array vao(ctx);
-    vao.load(vertex_array::data_t::immutable, mesh.value());
+    auto const cube_mesh = load(model_t::obj, resdir / "cube.obj");
+    assert(cube_mesh.has_value());
+
+    vertex_array cube_vao(ctx);
+    cube_vao.load(vertex_array::data_t::immutable, cube_mesh.value());
+
+    auto const obj_mesh = load(model_t::obj, resdir / "torus.obj");
+    assert(obj_mesh.has_value());
+
+    vertex_array obj_vao(ctx);
+    obj_vao.load(vertex_array::data_t::immutable, obj_mesh.value());
+
+    auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
+    assert(plane_mesh.has_value());
+
+    vertex_array plane_vao(ctx);
+    plane_vao.load(vertex_array::data_t::immutable, plane_mesh.value());
+
+    struct camera
+    {
+        glm::vec3 position{};
+        glm::vec3 direction{};
+
+        glm::vec3 right{};
+        glm::vec3 up{};
+    };
+
+    float speed = 0.1f;
+    glm::vec3 init_camera_position{ 0.0f, 0.0f, 10.0f };
+    glm::vec3 init_camera_direction{ 0.0f, 0.0f, -1.0f };
+
+    camera cam{ .position = init_camera_position,
+                .direction = init_camera_direction,
+                .up = glm::vec3{ 0.0f, 1.0f, 0.0f } };
+    cam.right = glm::normalize(glm::cross(cam.up, cam.direction));
+
+    bool is_w{ false };
+    bool is_s{ false };
+    bool is_a{ false };
+    bool is_d{ false };
+    bool is_lshift{ false };
+    bool is_lctrl{ false };
+
+    float delta_time{ 0 };
+    float last_ticks{ 0 };
+
+    float pitch{ 0 };
+    float yaw{ -90 };
 
     while (true)
     {
         SDL_Event ev;
         while (SDL_PollEvent(&ev))
         {
-            if (ev.type == SDL_EVENT_QUIT)
+            switch (ev.type)
             {
-                return EXIT_SUCCESS;
-            } else if (ev.type == SDL_EVENT_WINDOW_RESIZED)
+            case SDL_EVENT_WINDOW_RESIZED:
             {
                 auto const size = ctx.window_size();
                 glViewport(0, 0, size.x, size.y);
+                break;
             }
+
+            case SDL_EVENT_KEY_DOWN:
+            {
+                switch (ev.key.key)
+                {
+                case SDLK_Q:
+                    return EXIT_SUCCESS;
+                case SDLK_W:
+                    is_w = true;
+                    break;
+                case SDLK_S:
+                    is_s = true;
+                    break;
+                case SDLK_A:
+                    is_a = true;
+                    break;
+                case SDLK_D:
+                    is_d = true;
+                    break;
+                case SDLK_EQUALS:
+                    cam.position = init_camera_position;
+                    cam.direction = init_camera_direction;
+                    break;
+                }
+                is_lshift = ev.key.mod & SDL_KMOD_LSHIFT;
+                bool const new_is_lctrl = ev.key.mod & SDL_KMOD_LCTRL;
+                if (is_lctrl != new_is_lctrl)
+                {
+                    ctx.window_mouse_position(glm::vec2(ctx.window_size()) / 2.0f);
+                    is_lctrl = new_is_lctrl;
+                }
+                break;
+            }
+
+            case SDL_EVENT_KEY_UP:
+            {
+                switch (ev.key.key)
+                {
+                case SDLK_W:
+                    is_w = false;
+                    break;
+                case SDLK_S:
+                    is_s = false;
+                    break;
+                case SDLK_A:
+                    is_a = false;
+                    break;
+                case SDLK_D:
+                    is_d = false;
+                    break;
+                }
+                is_lshift = ev.key.mod & SDL_KMOD_LSHIFT;
+                bool const new_is_lctrl = ev.key.mod & SDL_KMOD_LCTRL;
+                if (is_lctrl != new_is_lctrl)
+                {
+                    ctx.window_mouse_position(glm::vec2(ctx.window_size()) / 2.0f);
+                    is_lctrl = new_is_lctrl;
+                }
+                break;
+            }
+
+            case SDL_EVENT_MOUSE_MOTION:
+            {
+                if (is_lctrl)
+                {
+                    ctx.window_relative_mouse_mode(false);
+                    assert(0 == SDL_ShowCursor());
+                } else
+                {
+                    ctx.window_relative_mouse_mode(true);
+                    assert(0 == SDL_HideCursor());
+                    pitch -= ev.motion.yrel * 0.05f;
+                    yaw += ev.motion.xrel * 0.05f;
+
+                    pitch = std::clamp(pitch, -89.0f, 89.0f);
+
+                    cam.direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+                    cam.direction.y = sin(glm::radians(pitch));
+                    cam.direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+
+                    cam.direction = glm::normalize(cam.direction);
+                }
+                break;
+            }
+            }
+        }
+
+        {
+            float const real_speed = speed * (is_lshift ? 4 : 1);
+            if (is_w) cam.position += delta_time * real_speed * cam.direction;
+            if (is_s) cam.position -= delta_time * real_speed * cam.direction;
+            if (is_a)
+                cam.position -= glm::normalize(glm::cross(cam.direction, cam.up)) * delta_time * real_speed;
+            if (is_d)
+                cam.position += glm::normalize(glm::cross(cam.direction, cam.up)) * delta_time * real_speed;
         }
 
         ctx.clear_window({ 0.2, 0.5, 1, 1 });
@@ -96,32 +239,67 @@ main(int argc, char** argv)
         {
             bind_guard _{ program };
 
-            // SDL_Time ticks{};
-            // assert(0 == SDL_GetCurrentTime(&ticks));
-            // float fticks = ticks % 360'000'000'000 / 1E8;
-            program.uniform(1, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
-
             {
                 auto const size = ctx.window_size();
-                glm::mat4 const proj =
-                    glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
-                glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-                glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
-                                                                   glm::vec3(1.0f, 0.0f, 0.0f)),
-                                                       glm::vec3(0.0f, 0.0f, 0.0f));
+                float const ratio = static_cast<float>(size.x) / static_cast<float>(size.y);
+
+                glm::mat4 proj{ 1.0f };
+                proj = glm::perspective(glm::radians(45.0f), ratio, 0.1f, 100.0f);
+
+                glm::mat4 view{ 1.0f };
+                view = glm::lookAt(cam.position, cam.position + cam.direction, cam.up);
+
                 program.uniform(2, proj);
                 program.uniform(3, view);
-                program.uniform(4, model);
             }
 
             {
-                bind_guard _{ vao };
+                glm::mat4 model{ 1.0f };
+                model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                program.uniform(4, model);
+                program.uniform(1, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
+
+                bind_guard _{ obj_vao };
+
+                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+            }
+
+            {
+                glm::mat4 model{ 1.0f };
+                model = glm::scale(model, glm::vec3{ 2 });
+                model = glm::translate(model, glm::vec3{ 0.0f, -1.0f, 0.0f });
+
+                program.uniform(4, model);
+                program.uniform(1, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
+                bind_guard _{ plane_vao };
+
+                GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+            }
+
+            {
+                glm::mat4 model{ 1.0f };
+                model = glm::scale(model, glm::vec3{ 0.25f });
+                model = glm::translate(model, glm::vec3{ 6.0f, 15.0f, -10.0f });
+
+                program.uniform(4, model);
+                program.uniform(1, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
+                bind_guard _{ cube_vao };
+
+                GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
         }
 
         ctx.swap_window();
+
+        SDL_Time ticks{};
+        assert(0 == SDL_GetCurrentTime(&ticks));
+        float fticks = ticks % 360'000'000'000 / 1E8;
+
+        delta_time = fticks - last_ticks;
+        last_ticks = fticks;
     }
 
     return EXIT_SUCCESS;
