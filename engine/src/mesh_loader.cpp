@@ -1,10 +1,13 @@
+#include <engine/error.hpp>
 #include <engine/mesh.hpp>
 #include <engine/mesh_loader.hpp>
 #include <engine/util.hpp>
 
+#include <SDL3/SDL_iostream.h>
+
 #include <filesystem>
-#include <fstream>
 #include <optional>
+#include <sstream>
 
 namespace dg
 {
@@ -16,11 +19,26 @@ std::optional<mesh>
 load_obj(std::filesystem::path const& filename)
 {
     mesh res;
-    std::ifstream file(filename);
 
-    if (!file.is_open())
+    // TODO: extract loading file into memory to separate function
+    std::stringstream file;
     {
-        return std::nullopt;
+        SDL_IOStream* const io = SDL_IOFromFile(filename.c_str(), "r");
+        if (nullptr == io)
+        {
+            LOG_DEBUG("error occured openning file: %s", SDL_GetError());
+            return std::nullopt;
+        }
+
+        SDL_SeekIO(io, 0, SDL_IO_SEEK_END);
+        size_t const filesize{ static_cast<size_t>(SDL_TellIO(io)) };
+        SDL_SeekIO(io, 0, SDL_IO_SEEK_SET);
+
+        std::string buf;
+        buf.resize(filesize);
+        SDL_ReadIO(io, buf.data(), filesize);
+
+        file << buf;
     }
 
     std::string line;

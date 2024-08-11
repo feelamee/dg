@@ -150,4 +150,14 @@ context::window_size() const
     return { w, h };
 }
 
+std::filesystem::path
+context::resources_path()
+{
+#ifdef __ANDROID__
+    return "";
+#else
+    return "./res";
+#endif
+}
+
 } // namespace dg

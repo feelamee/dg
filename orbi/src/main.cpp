@@ -17,6 +17,7 @@
 #include <glad/glad.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <string_view>
 
 constexpr std::string_view vertex_shader_src = R"(
@@ -55,7 +56,7 @@ void main()
 )";
 
 int
-main()
+main(int argc, char** argv)
 {
     using namespace dg;
 
@@ -67,7 +68,8 @@ main()
     program.attach_from_src(shader_program::shader_t::vertex, vertex_shader_src);
     assert(program.link());
 
-    auto const mesh = load(model_t::obj, "orbi/res/cube.obj");
+    auto const mesh = load(model_t::obj, std::filesystem::path(argv[0]).parent_path() /
+                                             context::resources_path() / "cube.obj");
     assert(mesh.has_value());
 
     vertex_array vao(ctx);

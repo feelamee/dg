@@ -4,6 +4,7 @@
 #include <glm/vec4.hpp>
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 
@@ -34,7 +35,9 @@ public:
 
     void clear_window(glm::vec4 color = { 0, 0, 0, 1 });
     void swap_window();
-    glm::u32vec2 window_size() const;
+    [[nodiscard]] glm::u32vec2 window_size() const;
+
+    static std::filesystem::path resources_path();
 
 private:
     static context const* ctx;

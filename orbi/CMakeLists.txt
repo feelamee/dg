@@ -33,3 +33,6 @@ if(DG_ORBI_PEDANTIC)
   include("../cmake/pedantic.cmake")
   target_link_libraries(orbi PRIVATE pedantic)
 endif()
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res"
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
