@@ -33,7 +33,17 @@ public:
 
     ~context();
 
-    void clear_window(glm::vec4 color = { 0, 0, 0, 1 });
+    enum class buffer
+    {
+        none = 0,
+
+        depth = 1 << 0,
+        color = 1 << 1
+    };
+    friend buffer operator|(buffer, buffer);
+    friend buffer operator&(buffer, buffer);
+
+    void clear_window(glm::vec4 color = { 0, 0, 0, 1 }, buffer mask = buffer::color | buffer::depth);
     void swap_window();
     [[nodiscard]] glm::u32vec2 window_size() const;
 

@@ -132,11 +132,33 @@ context::swap_window()
     SDL_GL_SwapWindow(data->sdl_window);
 }
 
-void
-context::clear_window(glm::vec4 color)
+context::buffer
+operator|(context::buffer l, context::buffer r)
 {
+    return static_cast<context::buffer>(to_underlying(l) | to_underlying(r));
+}
+
+context::buffer
+operator&(context::buffer l, context::buffer r)
+{
+    return static_cast<context::buffer>(to_underlying(l) & to_underlying(r));
+}
+
+void
+context::clear_window(glm::vec4 color, buffer mask)
+{
+    GLbitfield bitfield{ 0 };
+    if ((mask & buffer::color) != buffer::none)
+    {
+        bitfield |= GL_COLOR_BUFFER_BIT;
+    }
+    if ((mask & buffer::depth) != buffer::none)
+    {
+        bitfield |= GL_DEPTH_BUFFER_BIT;
+    }
+
     GL_CHECK(glClearColor(color.r, color.g, color.b, color.a));
-    GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
+    GL_CHECK(glClear(bitfield));
 }
 
 glm::u32vec2
