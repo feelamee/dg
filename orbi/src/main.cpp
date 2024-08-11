@@ -25,7 +25,7 @@ constexpr std::string_view vertex_shader_src = R"(
 
 layout (location = 0) in vec3 position;
 
-layout (location  = 1) uniform vec3 color;
+layout (location  = 1) uniform vec4 color;
 
 layout (location = 2) uniform mat4 projection;
 layout (location = 3) uniform mat4 view;
@@ -37,7 +37,7 @@ out vec4 vertex_color;
 void main()
 {
     gl_Position = projection * view * model * vec4(position, 1.0f);
-    vertex_color = vec4(color, 1.0f);
+    vertex_color = color;
 }
 )";
 
@@ -96,18 +96,18 @@ main(int argc, char** argv)
         {
             bind_guard _{ program };
 
-            SDL_Time ticks{};
-            assert(0 == SDL_GetCurrentTime(&ticks));
-            float fticks = ticks % 360'000'000'000 / 1E8;
-            program.uniform(1, { glm::sin(glm::radians(fticks)) / 2 + 0.5, 0.0f, 0.8f });
+            // SDL_Time ticks{};
+            // assert(0 == SDL_GetCurrentTime(&ticks));
+            // float fticks = ticks % 360'000'000'000 / 1E8;
+            program.uniform(1, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
 
             {
                 auto const size = ctx.window_size();
                 glm::mat4 const proj =
                     glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
                 glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-                glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
-                                                                   glm::vec3(1.0f, 1.0f, 1.0f)),
+                glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+                                                                   glm::vec3(1.0f, 0.0f, 0.0f)),
                                                        glm::vec3(0.0f, 0.0f, 0.0f));
                 program.uniform(2, proj);
                 program.uniform(3, view);

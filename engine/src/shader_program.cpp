@@ -125,6 +125,14 @@ shader_program::uniform(uniform_location id, glm::vec3 const& vec)
 }
 
 void
+shader_program::uniform(uniform_location id, glm::vec4 const& vec)
+{
+    bind_guard _{ *this };
+
+    GL_CHECK(glUniform4f(id, vec.x, vec.y, vec.z, vec.w));
+}
+
+void
 shader_program::uniform(uniform_location id, glm::mat4 const& mat)
 {
     bind_guard _{ *this };

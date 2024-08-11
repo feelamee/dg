@@ -47,6 +47,7 @@ public:
 
     using uniform_location = uint32_t;
     void uniform(uniform_location id, glm::vec3 const& vec);
+    void uniform(uniform_location id, glm::vec4 const& vec);
     void uniform(uniform_location id, glm::mat4 const& mat);
 
 private:
