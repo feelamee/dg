@@ -69,7 +69,7 @@ main(int argc, char** argv)
     assert(program.link());
 
     auto const mesh = load(model_t::obj, std::filesystem::path(argv[0]).parent_path() /
-                                             context::resources_path() / "cube.obj");
+                                             context::resources_path() / "torus.obj");
     assert(mesh.has_value());
 
     vertex_array vao(ctx);
@@ -104,7 +104,7 @@ main(int argc, char** argv)
                 auto const size = ctx.window_size();
                 glm::mat4 const proj =
                     glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
-                glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+                glm::mat4 const view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
                 glm::mat4 const model = glm::translate(glm::rotate(glm::mat4(1.0f), glm::radians(fticks),
                                                                    glm::vec3(1.0f, 1.0f, 1.0f)),
                                                        glm::vec3(0.0f, 0.0f, 0.0f));
