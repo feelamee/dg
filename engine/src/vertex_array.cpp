@@ -47,33 +47,35 @@ vertex_array::operator=(vertex_array other)
 vertex_array::~vertex_array() { GL_CHECK(glDeleteVertexArrays(1, &handle)); }
 
 void
-vertex_array::load(data_t type, mesh const& m)
+vertex_array::load(location loc, data_t type, std::vector<float> const& vertices,
+                   std::vector<uint32_t> const& indices)
 {
-    bind_guard _{ *this };
+    {
+        bind_guard _{ *this };
 
-    // clang-format off
-    GLenum const draw_type = type == data_t::immutable ? GL_STATIC_DRAW
-                           : type == data_t::dynamic ? GL_DYNAMIC_DRAW
-                           : type == data_t::stream  ? GL_STREAM_DRAW
-                           : 0;
-    // clang-format on
-    assert(draw_type != 0);
+        // clang-format off
+        GLenum const draw_type = type == data_t::immutable ? GL_STATIC_DRAW
+                               : type == data_t::dynamic ? GL_DYNAMIC_DRAW
+                               : type == data_t::stream  ? GL_STREAM_DRAW
+                               : 0;
+        // clang-format on
+        assert(draw_type != 0);
 
-    GLuint vbo{ 0 };
-    GL_CHECK(glGenBuffers(1, &vbo));
-    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+        GLuint vbo{ 0 };
+        GL_CHECK(glGenBuffers(1, &vbo));
+        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo));
 
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, m.vertices_bytelen(), m.vertices.data(), draw_type));
-    GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr));
+        GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertex_type), vertices.data(), draw_type));
+        GL_CHECK(glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(vertex_type), nullptr));
 
-    GLuint vbe{ 0 };
-    GL_CHECK(glGenBuffers(1, &vbe));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbe));
-    GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, m.indices_bytelen(), m.vertex_indices.data(), draw_type));
+        GLuint vbe{ 0 };
+        GL_CHECK(glGenBuffers(1, &vbe));
+        GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbe));
+        GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(index_type),
+                              indices.data(), draw_type));
 
-    GL_CHECK(glEnableVertexAttribArray(0));
-
-    GL_CHECK(glBindVertexArray(0));
+        GL_CHECK(glEnableVertexAttribArray(loc));
+    }
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }

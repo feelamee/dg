@@ -27,6 +27,7 @@ constexpr std::string_view vertex_shader_src = R"(
 #version 320 es
 
 layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
 
 layout (location = 2) uniform mat4 projection;
 layout (location = 3) uniform mat4 view;
@@ -79,19 +80,24 @@ main(int /*argc*/, char** argv)
     assert(cube_mesh.has_value());
 
     vertex_array cube_vao(ctx);
-    cube_vao.load(vertex_array::data_t::immutable, cube_mesh.value());
+    cube_vao.load(0, vertex_array::data_t::immutable, cube_mesh.value().vertices, cube_mesh.value().vertex_indices);
+    cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals, cube_mesh.value().normal_indices);
 
     auto const obj_mesh = load(model_t::obj, resdir / "torus.obj");
     assert(obj_mesh.has_value());
 
     vertex_array obj_vao(ctx);
-    obj_vao.load(vertex_array::data_t::immutable, obj_mesh.value());
+    obj_vao.load(0, vertex_array::data_t::immutable, obj_mesh.value().vertices, obj_mesh.value().vertex_indices);
+    obj_vao.load(1, vertex_array::data_t::immutable, obj_mesh.value().normals, obj_mesh.value().normal_indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
 
     vertex_array plane_vao(ctx);
-    plane_vao.load(vertex_array::data_t::immutable, plane_mesh.value());
+    plane_vao.load(0, vertex_array::data_t::immutable, plane_mesh.value().vertices,
+                   plane_mesh.value().vertex_indices);
+    plane_vao.load(1, vertex_array::data_t::immutable, plane_mesh.value().normals,
+                   plane_mesh.value().normal_indices);
 
     struct camera
     {
@@ -274,8 +280,8 @@ main(int /*argc*/, char** argv)
 
             {
                 glm::mat4 model{ 1.0f };
-                model = glm::scale(model, glm::vec3{ 2 });
-                model = glm::translate(model, glm::vec3{ 0.0f, -1.0f, 0.0f });
+                model = glm::translate(model, glm::vec3{ 0.0f, -3.0f, 0.0f });
+                model = glm::scale(model, glm::vec3{ 5 });
 
                 program.uniform(4, model);
                 program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });

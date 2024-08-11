@@ -10,7 +10,9 @@ struct mesh
 {
 public:
     [[nodiscard]] size_t vertices_bytelen() const;
-    [[nodiscard]] size_t indices_bytelen() const;
+    [[nodiscard]] size_t vertex_indices_bytelen() const;
+    [[nodiscard]] size_t normals_bytelen() const;
+    [[nodiscard]] size_t normal_indices_bytelen() const;
 
     using coord_type = float;
     using index_type = uint32_t;

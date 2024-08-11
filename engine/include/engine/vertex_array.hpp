@@ -5,6 +5,7 @@
 #include <any>
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
 
 namespace dg
 {
@@ -38,7 +39,11 @@ public:
         dynamic,
         stream
     };
-    void load(data_t type, mesh const& m);
+    using location = uint32_t;
+    using vertex_type = float;
+    using index_type = uint32_t;
+    void load(location loc, data_t type, std::vector<vertex_type> const& vertices,
+              std::vector<index_type> const& indices);
 
     std::any bind() override;
     void unbind(std::any data) override;
