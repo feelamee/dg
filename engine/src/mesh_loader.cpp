@@ -79,7 +79,8 @@ load(model_t type, std::filesystem::path const& filename)
 {
     switch (type)
     {
-    case model_t::obj: return load_obj(filename);
+    case model_t::obj:
+        return load_obj(filename);
     }
 
     unreachable();

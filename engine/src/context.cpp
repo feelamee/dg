@@ -1,5 +1,6 @@
 #include <engine/context.hpp>
 #include <engine/error.hpp>
+#include <engine/util.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
@@ -158,6 +159,19 @@ context::resources_path()
 #else
     return "./res";
 #endif
+}
+
+void
+context::enable(capability c)
+{
+    switch (c)
+    {
+    case capability::depth_test:
+        GL_CHECK(glEnable(GL_DEPTH_TEST));
+        return;
+    }
+
+    unreachable();
 }
 
 } // namespace dg

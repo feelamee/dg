@@ -39,6 +39,12 @@ public:
 
     static std::filesystem::path resources_path();
 
+    enum class capability
+    {
+        depth_test
+    };
+    void enable(capability);
+
 private:
     static context const* ctx;
 

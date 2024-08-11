@@ -62,6 +62,7 @@ main(int argc, char** argv)
 
     glm::vec2 win_size{ 960, 590 };
     context ctx("window", win_size);
+    ctx.enable(context::capability::depth_test);
 
     shader_program program(ctx);
     program.attach_from_src(shader_program::shader_t::fragment, fragment_shader_src);
