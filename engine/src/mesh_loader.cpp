@@ -39,10 +39,20 @@ load_obj(std::filesystem::path const& filename)
 
         std::string buf;
         buf.resize(filesize);
-        SDL_ReadIO(io, buf.data(), filesize);
+        if (0 == SDL_ReadIO(io, buf.data(), filesize))
+        {
+            LOG_DEBUG("error occurs reading SDL_IOStream: %s", SDL_GetError());
+        }
 
         file << buf;
+
+        if (0 != SDL_CloseIO(io))
+        {
+            LOG_DEBUG("error occurs closing SDL_IOStream: %s", SDL_GetError());
+        }
     }
+
+    std::vector<mesh::coord_type> normals;
 
     // TODO: rewrite
     std::string line;
@@ -66,22 +76,31 @@ load_obj(std::filesystem::path const& filename)
             float x{}, y{}, z{};
             if (iss >> x >> y >> z)
             {
-                res.normals.push_back(x);
-                res.normals.push_back(y);
-                res.normals.push_back(z);
+                normals.push_back(x);
+                normals.push_back(y);
+                normals.push_back(z);
             }
         } else if (prefix == "f")
         {
+            if (res.normals.empty())
+            {
+                res.normals.resize(res.vertices.size());
+            }
+
             std::string tok;
             while (iss >> tok)
             {
                 int v{}, vt{}, vn{};
 
+                uint32_t const stride{ 3 };
+
                 int const n = std::sscanf(tok.c_str(), "%d/%d/%d", &v, &vt, &vn);
                 if (n != 3) break;
 
                 res.vertex_indices.push_back(v - 1);
-                res.normal_indices.push_back(vn - 1);
+                res.normals.at((v - 1) * stride) = normals[vn - 1];
+                res.normals.at((v - 1) * stride + 1) = normals[vn];
+                res.normals.at((v - 1) * stride + 2) = normals[vn + 1];
             }
         }
     }

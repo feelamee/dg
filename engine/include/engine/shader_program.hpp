@@ -49,6 +49,7 @@ public:
     void uniform(uniform_location id, glm::vec3 const& vec);
     void uniform(uniform_location id, glm::vec4 const& vec);
     void uniform(uniform_location id, glm::mat4 const& mat);
+    void uniform(uniform_location id, float v);
 
 private:
     using handle_t = uint64_t;
