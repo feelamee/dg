@@ -69,13 +69,11 @@ How to configure environment on I will leave to Windows lovers :)
 
 UPD: ok, I test this)
 
-build with:
+cross-build with:
 ```sh
 cmake -S orbi/ -B build-win -G Ninja -DCMAKE_TOOLCHAIN_FILE=(realpath cmake/cmake-toolchain-mingw64-x86_64.cmake) -DDG_ENGINE_SANITIZER=OFF -DDG_ORBI_SANITIZER=OFF
 ninja -C build-win/
 ```
-
-write full path to toolchain file manually if your host is windows too, don't disable sanitizers if you want)
 
 Unfortunately wine a little drunk and it refuse all my tries to launch this...
 But all should work on *real* Windows
