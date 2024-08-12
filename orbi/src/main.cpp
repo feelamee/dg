@@ -17,6 +17,8 @@
 
 #include <glad/glad.h>
 
+#include "glm/matrix.hpp"
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -58,10 +60,11 @@ layout (location = 5) uniform vec4 vertex_color;
 layout (location = 6) uniform vec3 light_color;
 layout (location = 7) uniform vec3 light_position;
 layout (location = 8) uniform float ambient_strength;
+layout (location = 9) uniform mat3 normal_mat;
 
 void main()
 {
-    vec3 norm = normalize(normal);
+    vec3 norm = normal_mat * normalize(normal);
     vec3 dir = normalize(light_position - fragment_position);
     float diff = max(dot(norm, dir), 0.0f);
     vec3 diffuse = diff * light_color;
@@ -129,21 +132,21 @@ main(int /*argc*/, char** argv)
     cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals);
     cube_vao.load_indices(vertex_array::data_t::immutable, cube_mesh.value().indices);
 
-    auto const obj1_mesh = load(model_t::gltf, resdir / "suzanne.glb");
-    assert(obj1_mesh.has_value());
+    auto const suzanne_mesh = load(model_t::gltf, resdir / "suzanne.glb");
+    assert(suzanne_mesh.has_value());
 
     vertex_array obj1_vao(ctx);
-    obj1_vao.load(0, vertex_array::data_t::immutable, obj1_mesh.value().vertices);
-    obj1_vao.load(1, vertex_array::data_t::immutable, obj1_mesh.value().normals);
-    obj1_vao.load_indices(vertex_array::data_t::immutable, obj1_mesh.value().indices);
+    obj1_vao.load(0, vertex_array::data_t::immutable, suzanne_mesh.value().vertices);
+    obj1_vao.load(1, vertex_array::data_t::immutable, suzanne_mesh.value().normals);
+    obj1_vao.load_indices(vertex_array::data_t::immutable, suzanne_mesh.value().indices);
 
-    auto const obj2_mesh = load(model_t::gltf, resdir / "torus.glb");
-    assert(obj2_mesh.has_value());
+    auto const torus_mesh = load(model_t::gltf, resdir / "torus.glb");
+    assert(torus_mesh.has_value());
 
     vertex_array obj2_vao(ctx);
-    obj2_vao.load(0, vertex_array::data_t::immutable, obj2_mesh.value().vertices);
-    obj2_vao.load(1, vertex_array::data_t::immutable, obj2_mesh.value().normals);
-    obj2_vao.load_indices(vertex_array::data_t::immutable, obj2_mesh.value().indices);
+    obj2_vao.load(0, vertex_array::data_t::immutable, torus_mesh.value().vertices);
+    obj2_vao.load(1, vertex_array::data_t::immutable, torus_mesh.value().normals);
+    obj2_vao.load_indices(vertex_array::data_t::immutable, torus_mesh.value().indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
@@ -345,13 +348,17 @@ main(int /*argc*/, char** argv)
             {
                 glm::mat4 model{ 1.0f };
                 model = glm::translate(model, glm::vec3{ 0, -1.0f, 0.5f });
+                model = glm::scale(model, glm::vec3{ 1, 2, 3 });
 
                 program.uniform(4, model);
                 program.uniform(5, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
 
+                glm::mat3 normal_mat = glm::transpose(glm::inverse(model));
+                program.uniform(9, normal_mat);
+
                 bind_guard _{ obj2_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, obj2_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, torus_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
 
             {
@@ -360,9 +367,12 @@ main(int /*argc*/, char** argv)
                 program.uniform(4, model);
                 program.uniform(5, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
 
+                glm::mat3 normal_mat = glm::transpose(glm::inverse(model));
+                program.uniform(9, normal_mat);
+
                 bind_guard _{ obj1_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, obj1_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, suzanne_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
 
             {
@@ -372,6 +382,9 @@ main(int /*argc*/, char** argv)
 
                 program.uniform(4, model);
                 program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
+                glm::mat3 normal_mat = glm::transpose(glm::inverse(model));
+                program.uniform(9, normal_mat);
 
                 bind_guard _{ plane_vao };
 

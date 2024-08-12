@@ -141,6 +141,14 @@ shader_program::uniform(uniform_location id, glm::mat4 const& mat)
 }
 
 void
+shader_program::uniform(uniform_location id, glm::mat3 const& mat)
+{
+    bind_guard _{ *this };
+
+    GL_CHECK(glUniformMatrix3fv(id, 1, GL_FALSE, glm::value_ptr(mat)));
+}
+
+void
 shader_program::uniform(uniform_location id, float v)
 {
     bind_guard _{ *this };
