@@ -6,6 +6,7 @@ DG - Domini Games test task
 This project is a small game engine developed using SDL and OpenGL.
 It features basic movement controls with the WASD keys, allowing players to navigate the environment.
 The left shift key enables sprinting for faster movement.
+The **left**, **right** move light source along **x** axis, **up**, **bottom** - along **y** and **z**, **x** along **z** axis.
 The camera can be rotated using the mouse, providing an immersive experience.
 Additionally, the engine includes a lighting system, though it may have some inaccuracies.
 Overall, this test assignment showcases fundamental game mechanics and graphics rendering capabilities.
@@ -69,8 +70,8 @@ How to configure environment on I will leave to Windows lovers :)
 
 # Known issues
 
-- ambient and diffuse lightning implemented, but works with glitches
-  in `orbi` due to incorrect loading of normals from .obj file
+- ~ambient and diffuse lightning implemented, but works with glitches
+  in `orbi` due to incorrect loading of normals from .obj file~
 - memory leak
   on my machine this is always 3730 bytes. It reproduces even on simple example with `SDL_Init` and `SDL_Quit`.
   So, maybe SDL just leave memory unfreed, because up althrough will exit.
