@@ -129,13 +129,21 @@ main(int /*argc*/, char** argv)
     cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals);
     cube_vao.load_indices(vertex_array::data_t::immutable, cube_mesh.value().indices);
 
-    auto const obj_mesh = load(model_t::gltf, resdir / "torus.glb");
-    assert(obj_mesh.has_value());
+    auto const obj1_mesh = load(model_t::gltf, resdir / "suzanne.glb");
+    assert(obj1_mesh.has_value());
 
-    vertex_array obj_vao(ctx);
-    obj_vao.load(0, vertex_array::data_t::immutable, obj_mesh.value().vertices);
-    obj_vao.load(1, vertex_array::data_t::immutable, obj_mesh.value().normals);
-    obj_vao.load_indices(vertex_array::data_t::immutable, obj_mesh.value().indices);
+    vertex_array obj1_vao(ctx);
+    obj1_vao.load(0, vertex_array::data_t::immutable, obj1_mesh.value().vertices);
+    obj1_vao.load(1, vertex_array::data_t::immutable, obj1_mesh.value().normals);
+    obj1_vao.load_indices(vertex_array::data_t::immutable, obj1_mesh.value().indices);
+
+    auto const obj2_mesh = load(model_t::gltf, resdir / "torus.glb");
+    assert(obj2_mesh.has_value());
+
+    vertex_array obj2_vao(ctx);
+    obj2_vao.load(0, vertex_array::data_t::immutable, obj2_mesh.value().vertices);
+    obj2_vao.load(1, vertex_array::data_t::immutable, obj2_mesh.value().normals);
+    obj2_vao.load_indices(vertex_array::data_t::immutable, obj2_mesh.value().indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
@@ -336,14 +344,25 @@ main(int /*argc*/, char** argv)
 
             {
                 glm::mat4 model{ 1.0f };
-                model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                model = glm::translate(model, glm::vec3{ 0, -1.0f, 0.5f });
 
                 program.uniform(4, model);
                 program.uniform(5, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
 
-                bind_guard _{ obj_vao };
+                bind_guard _{ obj2_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, obj2_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
+            }
+
+            {
+                glm::mat4 model{ 1.0f };
+
+                program.uniform(4, model);
+                program.uniform(5, glm::vec4{ 1.0f, 0.5f, 0.31f, 1.0f });
+
+                bind_guard _{ obj1_vao };
+
+                GL_CHECK(glDrawElements(GL_TRIANGLES, obj1_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
 
             {
