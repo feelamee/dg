@@ -8,7 +8,8 @@ namespace dg
 
 enum class model_t
 {
-    obj
+    obj,
+    gltf,
 };
 
 struct mesh;

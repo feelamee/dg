@@ -31,6 +31,12 @@ FetchContent_Declare(
   GIT_TAG "1.0.1")
 FetchContent_MakeAvailable(glm)
 
+FetchContent_Declare(
+  tinygltf
+  GIT_REPOSITORY "https://github.com/syoyo/tinygltf"
+  GIT_TAG "v2.9.3")
+FetchContent_MakeAvailable(tinygltf)
+
 add_subdirectory("deps/glad/")
 
 add_library(engine SHARED)
@@ -65,7 +71,7 @@ endif()
 
 target_link_libraries(
   engine
-  PRIVATE #[[ SDL3::SDL3 ]] #[[ glad::glad ]]
+  PRIVATE #[[ SDL3::SDL3 ]] #[[ glad::glad ]] tinygltf
   PUBLIC glm::glm SDL3::SDL3 glad::glad)
 
 if(DG_ENGINE_SANITIZER)

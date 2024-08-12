@@ -127,15 +127,15 @@ main(int /*argc*/, char** argv)
     vertex_array cube_vao(ctx);
     cube_vao.load(0, vertex_array::data_t::immutable, cube_mesh.value().vertices);
     cube_vao.load(1, vertex_array::data_t::immutable, cube_mesh.value().normals);
-    cube_vao.load_indices(vertex_array::data_t::immutable, cube_mesh.value().vertex_indices);
+    cube_vao.load_indices(vertex_array::data_t::immutable, cube_mesh.value().indices);
 
-    auto const obj_mesh = load(model_t::obj, resdir / "torus.obj");
+    auto const obj_mesh = load(model_t::gltf, resdir / "torus.glb");
     assert(obj_mesh.has_value());
 
     vertex_array obj_vao(ctx);
     obj_vao.load(0, vertex_array::data_t::immutable, obj_mesh.value().vertices);
     obj_vao.load(1, vertex_array::data_t::immutable, obj_mesh.value().normals);
-    obj_vao.load_indices(vertex_array::data_t::immutable, obj_mesh.value().vertex_indices);
+    obj_vao.load_indices(vertex_array::data_t::immutable, obj_mesh.value().indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
@@ -143,7 +143,7 @@ main(int /*argc*/, char** argv)
     vertex_array plane_vao(ctx);
     plane_vao.load(0, vertex_array::data_t::immutable, plane_mesh.value().vertices);
     plane_vao.load(1, vertex_array::data_t::immutable, plane_mesh.value().normals);
-    plane_vao.load_indices(vertex_array::data_t::immutable, plane_mesh.value().vertex_indices);
+    plane_vao.load_indices(vertex_array::data_t::immutable, plane_mesh.value().indices);
 
     struct camera
     {
@@ -182,7 +182,7 @@ main(int /*argc*/, char** argv)
         glm::vec3 color{};
         float ambient_strength{};
     };
-    light const light_source{ .position = { 1.5f, 3.0f, -2.0f }, .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.1f };
+    light light_source{ .position = { 1.5f, 3.0f, -2.0f }, .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.1f };
 
     while (true)
     {
@@ -215,6 +215,24 @@ main(int /*argc*/, char** argv)
                     break;
                 case SDLK_D:
                     is_d = true;
+                    break;
+                case SDLK_LEFT:
+                    light_source.position.x -= 0.1;
+                    break;
+                case SDLK_RIGHT:
+                    light_source.position.x += 0.1;
+                    break;
+                case SDLK_UP:
+                    light_source.position.y += 0.1;
+                    break;
+                case SDLK_DOWN:
+                    light_source.position.y -= 0.1;
+                    break;
+                case SDLK_Z:
+                    light_source.position.z += 0.1;
+                    break;
+                case SDLK_X:
+                    light_source.position.z -= 0.1;
                     break;
                 case SDLK_EQUALS:
                     cam.position = init_camera_position;
@@ -325,7 +343,7 @@ main(int /*argc*/, char** argv)
 
                 bind_guard _{ obj_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, obj_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
 
             {
@@ -338,7 +356,7 @@ main(int /*argc*/, char** argv)
 
                 bind_guard _{ plane_vao };
 
-                GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
+                GL_CHECK(glDrawElements(GL_TRIANGLES, plane_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
         }
 
@@ -350,14 +368,14 @@ main(int /*argc*/, char** argv)
 
             glm::mat4 model{ 1.0f };
             model = glm::translate(model, light_source.position);
-            model = glm::scale(model, glm::vec3{ 0.25f });
+            model = glm::scale(model, glm::vec3{ 0.05f });
 
             light_source_program.uniform(4, model);
             light_source_program.uniform(5, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
 
             bind_guard _2{ cube_vao };
 
-            GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->vertex_indices.size(), GL_UNSIGNED_INT, nullptr));
+            GL_CHECK(glDrawElements(GL_TRIANGLES, cube_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
         }
 
         ctx.swap_window();
