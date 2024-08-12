@@ -61,15 +61,24 @@ layout (location = 6) uniform vec3 light_color;
 layout (location = 7) uniform vec3 light_position;
 layout (location = 8) uniform float ambient_strength;
 layout (location = 9) uniform mat3 normal_mat;
+layout (location = 10) uniform vec3 camera_position;
+layout (location = 11) uniform float specular_strength;
 
 void main()
 {
-    vec3 norm = normal_mat * normalize(normal);
-    vec3 dir = normalize(light_position - fragment_position);
-    float diff = max(dot(norm, dir), 0.0f);
-    vec3 diffuse = diff * light_color;
     vec3 ambient = ambient_strength * light_color;
-    color = vec4(ambient + diffuse, 1.0f) * vertex_color;
+
+    vec3 norm = normalize(normal_mat * normal);
+    vec3 light_direction = normalize(light_position - fragment_position);
+    float diff = max(dot(norm, light_direction), 0.0f);
+    vec3 diffuse = diff * light_color;
+
+    vec3 view_direction = normalize(camera_position - fragment_position);
+    vec3 reflect_direction = reflect(-light_direction, norm);
+    float spec = pow(max(dot(view_direction, reflect_direction), 0.0f), 32.0f);
+    vec3 specular = specular_strength * spec * light_color;
+
+    color = vec4(ambient + diffuse + specular, 1.0f) * vertex_color;
 }
 )";
 
@@ -135,18 +144,18 @@ main(int /*argc*/, char** argv)
     auto const suzanne_mesh = load(model_t::gltf, resdir / "suzanne.glb");
     assert(suzanne_mesh.has_value());
 
-    vertex_array obj1_vao(ctx);
-    obj1_vao.load(0, vertex_array::data_t::immutable, suzanne_mesh.value().vertices);
-    obj1_vao.load(1, vertex_array::data_t::immutable, suzanne_mesh.value().normals);
-    obj1_vao.load_indices(vertex_array::data_t::immutable, suzanne_mesh.value().indices);
+    vertex_array suzanne_vao(ctx);
+    suzanne_vao.load(0, vertex_array::data_t::immutable, suzanne_mesh.value().vertices);
+    suzanne_vao.load(1, vertex_array::data_t::immutable, suzanne_mesh.value().normals);
+    suzanne_vao.load_indices(vertex_array::data_t::immutable, suzanne_mesh.value().indices);
 
     auto const torus_mesh = load(model_t::gltf, resdir / "torus.glb");
     assert(torus_mesh.has_value());
 
-    vertex_array obj2_vao(ctx);
-    obj2_vao.load(0, vertex_array::data_t::immutable, torus_mesh.value().vertices);
-    obj2_vao.load(1, vertex_array::data_t::immutable, torus_mesh.value().normals);
-    obj2_vao.load_indices(vertex_array::data_t::immutable, torus_mesh.value().indices);
+    vertex_array torus_vao(ctx);
+    torus_vao.load(0, vertex_array::data_t::immutable, torus_mesh.value().vertices);
+    torus_vao.load(1, vertex_array::data_t::immutable, torus_mesh.value().normals);
+    torus_vao.load_indices(vertex_array::data_t::immutable, torus_mesh.value().indices);
 
     auto const plane_mesh = load(model_t::obj, resdir / "plane.obj");
     assert(plane_mesh.has_value());
@@ -192,8 +201,12 @@ main(int /*argc*/, char** argv)
         glm::vec3 position{};
         glm::vec3 color{};
         float ambient_strength{};
+        float specular_strength{};
     };
-    light light_source{ .position = { 1.5f, 3.0f, -2.0f }, .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.1f };
+    light light_source{ .position = { 1.5f, 3.0f, -2.0f },
+                        .color = { 1.0f, 1.0f, 1.0f },
+                        .ambient_strength = 0.2f,
+                        .specular_strength = 0.9f };
 
     while (true)
     {
@@ -344,6 +357,8 @@ main(int /*argc*/, char** argv)
             program.uniform(3, view);
             program.uniform(6, light_source.color);
             program.uniform(8, light_source.ambient_strength);
+            program.uniform(10, cam.position);
+            program.uniform(11, light_source.specular_strength);
 
             {
                 glm::mat4 model{ 1.0f };
@@ -356,7 +371,7 @@ main(int /*argc*/, char** argv)
                 glm::mat3 normal_mat = glm::transpose(glm::inverse(model));
                 program.uniform(9, normal_mat);
 
-                bind_guard _{ obj2_vao };
+                bind_guard _{ torus_vao };
 
                 GL_CHECK(glDrawElements(GL_TRIANGLES, torus_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
@@ -370,7 +385,7 @@ main(int /*argc*/, char** argv)
                 glm::mat3 normal_mat = glm::transpose(glm::inverse(model));
                 program.uniform(9, normal_mat);
 
-                bind_guard _{ obj1_vao };
+                bind_guard _{ suzanne_vao };
 
                 GL_CHECK(glDrawElements(GL_TRIANGLES, suzanne_mesh->indices.size(), GL_UNSIGNED_INT, nullptr));
             }
