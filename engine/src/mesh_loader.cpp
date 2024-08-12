@@ -25,7 +25,7 @@ namespace
 std::vector<std::byte>
 load_file(std::filesystem::path const& filename)
 {
-    SDL_IOStream* const io = SDL_IOFromFile(filename.c_str(), "r");
+    SDL_IOStream* const io = SDL_IOFromFile(filename.string().c_str(), "r");
     if (nullptr == io)
     {
         LOG_DEBUG("error occured openning file: %s", SDL_GetError());
@@ -59,7 +59,7 @@ load_obj(std::filesystem::path const& filename)
     // TODO: extract loading file into memory to separate function
     std::stringstream file;
     {
-        SDL_IOStream* const io = SDL_IOFromFile(filename.c_str(), "r");
+        SDL_IOStream* const io = SDL_IOFromFile(filename.string().c_str(), "r");
         if (nullptr == io)
         {
             LOG_DEBUG("error occured openning file: %s", SDL_GetError());
@@ -152,7 +152,7 @@ load_gltf(std::filesystem::path const& filename)
     if (!gltf.LoadBinaryFromMemory(&model, &err, nullptr,
                                    reinterpret_cast<const unsigned char*>(data.data()), data.size()))
     {
-        LOG_DEBUG("error occurs loading gltf from file %s:\n\t%s", filename.c_str(), err.c_str());
+        LOG_DEBUG("error occurs loading gltf from file %s:\n\t%s", filename.string().c_str(), err.c_str());
         return std::nullopt;
     }
 

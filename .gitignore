@@ -6,3 +6,4 @@ build/
 orbi/android-project/android-sdk
 local.properties
 orbi/res/blend/
+build-win/

@@ -66,7 +66,7 @@ if(ANDROID)
   target_link_libraries(engine PRIVATE GLESv3 EGL android log)
 else()
   find_package(OpenGL REQUIRED)
-  target_link_libraries(engine PRIVATE OpenGL::GLES3)
+  target_link_libraries(engine PRIVATE OpenGL::GL)
 endif()
 
 target_link_libraries(
