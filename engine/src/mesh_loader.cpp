@@ -20,6 +20,8 @@ namespace dg
 namespace
 {
 
+// WARNING: this mess.. khm code* writen by chat gpt. Absolutely not by me
+
 std::vector<std::byte>
 load_file(std::filesystem::path const& filename)
 {
