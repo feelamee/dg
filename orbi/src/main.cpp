@@ -204,6 +204,7 @@ main(int /*argc*/, char** argv)
         float specular_strength{};
     };
     light light_source{ .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.2f, .specular_strength = 0.9f };
+    bool is_light_source_rotating_around{ true };
 
     while (true)
     {
@@ -258,6 +259,9 @@ main(int /*argc*/, char** argv)
                 case SDLK_EQUALS:
                     cam.position = init_camera_position;
                     cam.direction = init_camera_direction;
+                    break;
+                case SDLK_MINUS:
+                    is_light_source_rotating_around = !is_light_source_rotating_around;
                     break;
                 }
                 is_lshift = ev.key.mod & SDL_KMOD_LSHIFT;
@@ -433,9 +437,12 @@ main(int /*argc*/, char** argv)
             last_ticks = fticks;
         }
 
-        light_source.position.x = sin(last_ticks * 0.1) * 4.0f;
-        light_source.position.y = sin(last_ticks / 2.0f * 0.1) * 2.0f;
-        light_source.position.z = cos(last_ticks * 0.1) * 4.0f;
+        if (is_light_source_rotating_around)
+        {
+            light_source.position.x = sin(last_ticks * 0.1) * 4.0f;
+            light_source.position.y = sin(last_ticks / 2.0f * 0.1) * 2.0f;
+            light_source.position.z = cos(last_ticks * 0.1) * 4.0f;
+        }
     }
 
     return EXIT_SUCCESS;
