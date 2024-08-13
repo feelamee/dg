@@ -203,10 +203,7 @@ main(int /*argc*/, char** argv)
         float ambient_strength{};
         float specular_strength{};
     };
-    light light_source{ .position = { 1.5f, 3.0f, -2.0f },
-                        .color = { 1.0f, 1.0f, 1.0f },
-                        .ambient_strength = 0.2f,
-                        .specular_strength = 0.9f };
+    light light_source{ .color = { 1.0f, 1.0f, 1.0f }, .ambient_strength = 0.2f, .specular_strength = 0.9f };
 
     while (true)
     {
@@ -435,6 +432,10 @@ main(int /*argc*/, char** argv)
             delta_time = fticks - last_ticks;
             last_ticks = fticks;
         }
+
+        light_source.position.x = sin(last_ticks * 0.1) * 4.0f;
+        light_source.position.y = sin(last_ticks / 2.0f * 0.1) * 2.0f;
+        light_source.position.z = cos(last_ticks * 0.1) * 4.0f;
     }
 
     return EXIT_SUCCESS;
