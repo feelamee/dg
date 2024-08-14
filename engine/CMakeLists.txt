@@ -31,6 +31,7 @@ FetchContent_Declare(
   GIT_TAG "1.0.1")
 FetchContent_MakeAvailable(glm)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 FetchContent_Declare(
   tinygltf
   GIT_REPOSITORY "https://github.com/syoyo/tinygltf"
