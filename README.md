@@ -89,7 +89,7 @@ or call wine manually, if your haven't properly configured xdg-open
 
 - ~ambient and diffuse lightning implemented, but works with glitches
   in `orbi` due to incorrect loading of normals from .obj file~
-- memory leak
+- memory leak\
   on my machine this is always 3730 bytes. It reproduces even on simple example with `SDL_Init` and `SDL_Quit`.
-  So, maybe SDL just leave memory unfreed, because up althrough will exit.
+  So, maybe SDL just leave memory unfreed, because app althrough will exit.
   On other SDL backend behaviour may differ.

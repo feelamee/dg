@@ -1,4 +1,4 @@
-build/
+build*/
 .helix/
 .cache/
 .gradle/
@@ -6,4 +6,3 @@ build/
 orbi/android-project/android-sdk
 local.properties
 orbi/res/blend/
-build-win/
